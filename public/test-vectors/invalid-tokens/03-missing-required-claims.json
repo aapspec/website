@@ -1,0 +1,150 @@
+{
+  "name": "missing-required-claims",
+  "description": "Tokens missing various required AAP claims",
+  "variants": [
+    {
+      "variant_name": "missing_agent_claim",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "missing-agent-001",
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "test.action"
+          }
+        ]
+      },
+      "validation_error": {
+        "error_code": "invalid_token",
+        "http_status": 401,
+        "description": "Token missing required 'agent' claim",
+        "specification_section": "7.3 (Agent Identity Validation)"
+      }
+    },
+    {
+      "variant_name": "missing_task_claim",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "missing-task-001",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "capabilities": [
+          {
+            "action": "test.action"
+          }
+        ]
+      },
+      "validation_error": {
+        "error_code": "invalid_token",
+        "http_status": 401,
+        "description": "Token missing required 'task' claim",
+        "specification_section": "7.4 (Task Binding Validation)"
+      }
+    },
+    {
+      "variant_name": "missing_capabilities_claim",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "missing-capabilities-001",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        }
+      },
+      "validation_error": {
+        "error_code": "invalid_token",
+        "http_status": 401,
+        "description": "Token missing required 'capabilities' claim",
+        "specification_section": "7.5 (Capability Enforcement)"
+      }
+    },
+    {
+      "variant_name": "agent_missing_id",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "agent-no-id-001",
+        "agent": {
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "test.action"
+          }
+        ]
+      },
+      "validation_error": {
+        "error_code": "invalid_token",
+        "http_status": 401,
+        "description": "Agent claim missing required 'id' field",
+        "specification_section": "7.3 (Agent Identity Validation)"
+      }
+    },
+    {
+      "variant_name": "task_missing_purpose",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "task-no-purpose-001",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001"
+        },
+        "capabilities": [
+          {
+            "action": "test.action"
+          }
+        ]
+      },
+      "validation_error": {
+        "error_code": "invalid_token",
+        "http_status": 401,
+        "description": "Task claim missing required 'purpose' field",
+        "specification_section": "7.4 (Task Binding Validation)"
+      }
+    }
+  ],
+  "metadata": {
+    "specification_section": "7.1-7.5 (Validation Rules)",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

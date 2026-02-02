@@ -1,0 +1,104 @@
+{
+  "name": "time-window-constrained",
+  "description": "Token with time window constraints",
+  "token_payload": {
+    "iss": "https://as.example.com",
+    "sub": "agent-scheduler-01",
+    "aud": "https://api.example.com",
+    "exp": 1735689600,
+    "iat": 1735686000,
+    "jti": "550e8400-e29b-41d4-a716-446655440020",
+    "agent": {
+      "id": "agent-scheduler-01",
+      "type": "software",
+      "operator": "org:acme-corp"
+    },
+    "task": {
+      "id": "task-scheduled-001",
+      "purpose": "scheduled_data_processing",
+      "created_at": 1735686000
+    },
+    "capabilities": [
+      {
+        "action": "data.process",
+        "description": "Process data during business hours only",
+        "constraints": {
+          "time_window": {
+            "start": "2024-01-01T09:00:00Z",
+            "end": "2024-12-31T17:00:00Z"
+          },
+          "allowed_methods": ["POST"],
+          "max_request_size": 10485760
+        }
+      }
+    ],
+    "delegation": {
+      "depth": 0,
+      "max_depth": 0,
+      "chain": ["agent-scheduler-01"]
+    }
+  },
+  "test_cases": [
+    {
+      "name": "within_time_window",
+      "request": {
+        "action": "data.process",
+        "method": "POST",
+        "timestamp": "2024-06-15T12:00:00Z"
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Request within time window should succeed"
+    },
+    {
+      "name": "before_time_window",
+      "request": {
+        "action": "data.process",
+        "method": "POST",
+        "timestamp": "2023-12-31T12:00:00Z"
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_capability_expired",
+      "description": "Request before time window should fail"
+    },
+    {
+      "name": "after_time_window",
+      "request": {
+        "action": "data.process",
+        "method": "POST",
+        "timestamp": "2025-01-01T12:00:00Z"
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_capability_expired",
+      "description": "Request after time window should fail"
+    },
+    {
+      "name": "wrong_http_method",
+      "request": {
+        "action": "data.process",
+        "method": "GET",
+        "timestamp": "2024-06-15T12:00:00Z"
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_constraint_violation",
+      "description": "Wrong HTTP method should fail"
+    },
+    {
+      "name": "request_too_large",
+      "request": {
+        "action": "data.process",
+        "method": "POST",
+        "timestamp": "2024-06-15T12:00:00Z",
+        "content_length": 20971520
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_constraint_violation",
+      "http_status": 413,
+      "description": "Request exceeding max size should fail"
+    }
+  ],
+  "metadata": {
+    "specification_section": "5.6.3 (Time-Based Constraints), 5.6.5 (Data Constraints)",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

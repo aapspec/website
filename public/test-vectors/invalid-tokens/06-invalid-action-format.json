@@ -1,0 +1,197 @@
+{
+  "name": "invalid-action-format",
+  "description": "Tokens with action names violating ABNF grammar",
+  "variants": [
+    {
+      "variant_name": "starts_with_digit",
+      "description": "Action component starts with digit (invalid)",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "invalid-action-001",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "9api.read"
+          }
+        ],
+        "delegation": {
+          "depth": 0,
+          "max_depth": 2,
+          "chain": ["agent-test-01"]
+        }
+      },
+      "validation_error": {
+        "error_code": "invalid_token",
+        "http_status": 401,
+        "description": "Action name '9api.read' violates ABNF grammar (component must start with letter)",
+        "specification_section": "5.5 (Action Name Grammar)"
+      }
+    },
+    {
+      "variant_name": "double_dot",
+      "description": "Action has double dot (empty component)",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "invalid-action-002",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "search..web"
+          }
+        ],
+        "delegation": {
+          "depth": 0,
+          "max_depth": 2,
+          "chain": ["agent-test-01"]
+        }
+      },
+      "validation_error": {
+        "error_code": "invalid_token",
+        "http_status": 401,
+        "description": "Action name 'search..web' has empty component (double dot)",
+        "specification_section": "5.5"
+      }
+    },
+    {
+      "variant_name": "starts_with_dot",
+      "description": "Action starts with dot",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "invalid-action-003",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": ".search.web"
+          }
+        ],
+        "delegation": {
+          "depth": 0,
+          "max_depth": 2,
+          "chain": ["agent-test-01"]
+        }
+      },
+      "validation_error": {
+        "error_code": "invalid_token",
+        "http_status": 401,
+        "description": "Action name '.search.web' starts with dot",
+        "specification_section": "5.5"
+      }
+    },
+    {
+      "variant_name": "ends_with_dot",
+      "description": "Action ends with dot",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "invalid-action-004",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "search.web."
+          }
+        ],
+        "delegation": {
+          "depth": 0,
+          "max_depth": 2,
+          "chain": ["agent-test-01"]
+        }
+      },
+      "validation_error": {
+        "error_code": "invalid_token",
+        "http_status": 401,
+        "description": "Action name 'search.web.' ends with dot",
+        "specification_section": "5.5"
+      }
+    },
+    {
+      "variant_name": "contains_wildcard",
+      "description": "Action contains wildcard (not allowed)",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "invalid-action-005",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "cms.*"
+          }
+        ],
+        "delegation": {
+          "depth": 0,
+          "max_depth": 2,
+          "chain": ["agent-test-01"]
+        }
+      },
+      "validation_error": {
+        "error_code": "invalid_token",
+        "http_status": 401,
+        "description": "Action name 'cms.*' contains wildcard (not allowed)",
+        "specification_section": "5.5 (wildcards not permitted in this version)"
+      }
+    }
+  ],
+  "metadata": {
+    "specification_section": "5.5 (Action Name Grammar)",
+    "note": "ABNF: action-name = component *( \".\" component ), component = ALPHA *( ALPHA / DIGIT / \"-\" / \"_\" )",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

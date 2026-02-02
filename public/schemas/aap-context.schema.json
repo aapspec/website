@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aap-protocol.org/schemas/aap-context.schema.json",
+  "title": "AAP Context Claim",
+  "description": "Schema for the 'context' claim in AAP tokens, providing execution context",
+  "type": "object",
+  "properties": {
+    "environment": {
+      "type": "string",
+      "enum": ["production", "staging", "development", "testing"],
+      "description": "Execution environment"
+    },
+    "location": {
+      "type": "object",
+      "description": "Geographic or network location context",
+      "properties": {
+        "region": {
+          "type": "string",
+          "description": "Geographic region (ISO 3166-1 alpha-2 code)",
+          "pattern": "^[A-Z]{2}$"
+        },
+        "datacenter": {
+          "type": "string",
+          "description": "Datacenter or zone identifier"
+        },
+        "ip_address": {
+          "type": "string",
+          "description": "IP address of agent (for network-level restrictions)"
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "description": "Runtime environment information",
+      "properties": {
+        "platform": {
+          "type": "string",
+          "description": "Runtime platform (kubernetes, docker, lambda, etc.)"
+        },
+        "instance_id": {
+          "type": "string",
+          "description": "Unique identifier of the runtime instance"
+        },
+        "version": {
+          "type": "string",
+          "description": "Runtime version"
+        }
+      }
+    },
+    "session": {
+      "type": "object",
+      "description": "Session context",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Session identifier"
+        },
+        "started_at": {
+          "type": "integer",
+          "description": "Unix timestamp when session started"
+        },
+        "expires_at": {
+          "type": "integer",
+          "description": "Unix timestamp when session expires"
+        }
+      }
+    },
+    "correlation": {
+      "type": "object",
+      "description": "Correlation identifiers for distributed tracing",
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "description": "Request correlation ID"
+        },
+        "parent_request_id": {
+          "type": "string",
+          "description": "Parent request ID (for nested requests)"
+        }
+      }
+    }
+  }
+}

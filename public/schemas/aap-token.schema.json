@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aap-protocol.org/schemas/aap-token.schema.json",
+  "title": "AAP Token",
+  "description": "Complete JSON Schema for Agent Authorization Profile (AAP) JWT tokens. This schema validates the JWT payload after signature verification.",
+  "type": "object",
+  "required": ["iss", "sub", "aud", "exp", "iat", "agent", "task", "capabilities"],
+  "properties": {
+    "iss": {
+      "type": "string",
+      "format": "uri",
+      "description": "Token issuer (Authorization Server URL)",
+      "examples": ["https://as.example.com"]
+    },
+    "sub": {
+      "type": "string",
+      "description": "Subject (agent identifier, typically same as agent.id)",
+      "examples": ["spiffe://trust.example.com/agent/researcher-01"]
+    },
+    "aud": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Single audience (Resource Server)"
+        },
+        {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1,
+          "description": "Multiple audiences"
+        }
+      ],
+      "description": "Audience (intended Resource Server(s))",
+      "examples": [
+        "https://api.example.com",
+        ["https://api.example.com", "https://cms.example.com"]
+      ]
+    },
+    "exp": {
+      "type": "integer",
+      "description": "Expiration time (Unix timestamp)",
+      "minimum": 0
+    },
+    "iat": {
+      "type": "integer",
+      "description": "Issued at time (Unix timestamp)",
+      "minimum": 0
+    },
+    "nbf": {
+      "type": "integer",
+      "description": "Not before time (Unix timestamp, optional)",
+      "minimum": 0
+    },
+    "jti": {
+      "type": "string",
+      "description": "JWT ID - unique identifier for this token (RECOMMENDED)",
+      "examples": ["550e8400-e29b-41d4-a716-446655440000"]
+    },
+    "agent": {
+      "$ref": "aap-agent.schema.json",
+      "description": "Agent identity and metadata"
+    },
+    "task": {
+      "$ref": "aap-task.schema.json",
+      "description": "Task binding information"
+    },
+    "capabilities": {
+      "$ref": "aap-capabilities.schema.json",
+      "description": "Array of capabilities granted to the agent"
+    },
+    "oversight": {
+      "$ref": "aap-oversight.schema.json",
+      "description": "Human oversight requirements (optional)"
+    },
+    "delegation": {
+      "$ref": "aap-delegation.schema.json",
+      "description": "Delegation chain tracking (optional, required for derived tokens)"
+    },
+    "context": {
+      "$ref": "aap-context.schema.json",
+      "description": "Execution context (optional)"
+    },
+    "audit": {
+      "$ref": "aap-audit.schema.json",
+      "description": "Audit and logging requirements (optional)"
+    },
+    "cnf": {
+      "type": "object",
+      "description": "Confirmation claim for proof-of-possession (DPoP or mTLS)",
+      "properties": {
+        "jkt": {
+          "type": "string",
+          "description": "JWK SHA-256 thumbprint for DPoP"
+        },
+        "x5t#S256": {
+          "type": "string",
+          "description": "X.509 certificate SHA-256 thumbprint for mTLS"
+        }
+      }
+    },
+    "scope": {
+      "type": "string",
+      "description": "OAuth 2.0 scope parameter (optional, for backward compatibility)",
+      "examples": ["aap:research", "aap:content-creation"]
+    }
+  },
+  "additionalProperties": false
+}

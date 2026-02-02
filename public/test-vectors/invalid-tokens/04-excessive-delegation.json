@@ -1,0 +1,60 @@
+{
+  "name": "excessive-delegation",
+  "description": "Token with delegation depth exceeding max_depth",
+  "token_payload": {
+    "iss": "https://as.example.com",
+    "sub": "agent-test-01",
+    "aud": "https://api.example.com",
+    "exp": 1735689600,
+    "iat": 1735686000,
+    "jti": "excessive-delegation-001",
+    "agent": {
+      "id": "agent-test-01",
+      "type": "llm-autonomous",
+      "operator": "org:test"
+    },
+    "task": {
+      "id": "task-001",
+      "purpose": "test"
+    },
+    "capabilities": [
+      {
+        "action": "test.action"
+      }
+    ],
+    "delegation": {
+      "depth": 3,
+      "max_depth": 2,
+      "chain": ["agent-test-01", "tool-a", "tool-b", "tool-c"],
+      "parent_jti": "parent-token-001"
+    }
+  },
+  "validation_errors": [
+    {
+      "error_type": "excessive_delegation",
+      "error_code": "aap_excessive_delegation",
+      "http_status": 403,
+      "description": "Delegation depth (3) exceeds maximum allowed depth (2)",
+      "specification_section": "7.7 (Delegation Chain Validation), 5.7 (Delegation Semantics)",
+      "validation_check": "delegation.depth <= delegation.max_depth"
+    }
+  ],
+  "test_cases": [
+    {
+      "name": "validate_excessive_depth",
+      "expected_result": "REJECTED",
+      "error_code": "aap_excessive_delegation",
+      "http_status": 403,
+      "validation": {
+        "depth": 3,
+        "max_depth": 2,
+        "check": "depth > max_depth"
+      }
+    }
+  ],
+  "metadata": {
+    "specification_section": "7.7, 5.7",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

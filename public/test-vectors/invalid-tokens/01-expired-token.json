@@ -1,0 +1,71 @@
+{
+  "name": "expired-token",
+  "description": "Token with expired 'exp' claim",
+  "token_payload": {
+    "iss": "https://as.example.com",
+    "sub": "agent-test-01",
+    "aud": "https://api.example.com",
+    "exp": 1704067200,
+    "iat": 1704063600,
+    "jti": "expired-token-001",
+    "agent": {
+      "id": "agent-test-01",
+      "type": "llm-autonomous",
+      "operator": "org:test"
+    },
+    "task": {
+      "id": "task-001",
+      "purpose": "test"
+    },
+    "capabilities": [
+      {
+        "action": "test.action"
+      }
+    ],
+    "delegation": {
+      "depth": 0,
+      "max_depth": 2,
+      "chain": ["agent-test-01"]
+    }
+  },
+  "validation_errors": [
+    {
+      "error_type": "token_expired",
+      "error_code": "invalid_token",
+      "http_status": 401,
+      "description": "Token exp (1704067200 = 2024-01-01 00:00:00) is in the past",
+      "specification_section": "7.1 (Standard Token Validation)",
+      "validation_check": "exp > current_time (within clock skew tolerance)"
+    }
+  ],
+  "test_cases": [
+    {
+      "name": "validate_expired_token",
+      "current_time": 1735686000,
+      "expected_result": "REJECTED",
+      "error_code": "invalid_token",
+      "error_description_contains": "expired",
+      "http_status": 401
+    },
+    {
+      "name": "validate_with_clock_skew",
+      "current_time": 1704067500,
+      "clock_skew_tolerance": 300,
+      "expected_result": "ACCEPTED",
+      "description": "Within 5-minute clock skew tolerance should still be valid"
+    },
+    {
+      "name": "validate_beyond_clock_skew",
+      "current_time": 1704068000,
+      "clock_skew_tolerance": 300,
+      "expected_result": "REJECTED",
+      "error_code": "invalid_token",
+      "description": "Beyond clock skew tolerance should fail"
+    }
+  ],
+  "metadata": {
+    "specification_section": "7.1, 12.8 (Clock Skew)",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

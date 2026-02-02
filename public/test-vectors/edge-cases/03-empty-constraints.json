@@ -1,0 +1,186 @@
+{
+  "name": "empty-and-minimal-constraints",
+  "description": "Edge cases for capabilities with minimal or no constraints",
+  "test_scenarios": [
+    {
+      "name": "capability_no_constraints",
+      "description": "Capability with no constraints object",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-minimal-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "minimal-001",
+        "agent": {
+          "id": "agent-minimal-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "unrestricted.action"
+          }
+        ],
+        "delegation": {
+          "depth": 0,
+          "max_depth": 2,
+          "chain": ["agent-minimal-01"]
+        }
+      },
+      "expected_result": "VALID",
+      "request_test": {
+        "action": "unrestricted.action",
+        "expected": "AUTHORIZED",
+        "note": "No constraints means action is allowed without restrictions"
+      }
+    },
+    {
+      "name": "capability_empty_constraints",
+      "description": "Capability with empty constraints object",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-empty-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "empty-constraints-001",
+        "agent": {
+          "id": "agent-empty-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "unrestricted.action",
+            "constraints": {}
+          }
+        ],
+        "delegation": {
+          "depth": 0,
+          "max_depth": 2,
+          "chain": ["agent-empty-01"]
+        }
+      },
+      "expected_result": "VALID",
+      "request_test": {
+        "action": "unrestricted.action",
+        "expected": "AUTHORIZED",
+        "note": "Empty constraints object is equivalent to no constraints"
+      }
+    },
+    {
+      "name": "empty_capabilities_array",
+      "description": "Token with empty capabilities array (invalid)",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-no-caps-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "no-caps-001",
+        "agent": {
+          "id": "agent-no-caps-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [],
+        "delegation": {
+          "depth": 0,
+          "max_depth": 2,
+          "chain": ["agent-no-caps-01"]
+        }
+      },
+      "expected_result": "INVALID",
+      "error_code": "invalid_token",
+      "reason": "capabilities array MUST contain at least one capability",
+      "json_schema_violation": "minItems: 1 in aap-capabilities.schema.json"
+    },
+    {
+      "name": "multiple_capabilities_for_same_action",
+      "description": "Multiple capabilities with same action name (OR semantics)",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-multi-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "multi-caps-001",
+        "agent": {
+          "id": "agent-multi-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "api.call",
+            "constraints": {
+              "domains_allowed": ["example.org"],
+              "max_requests_per_hour": 100
+            }
+          },
+          {
+            "action": "api.call",
+            "constraints": {
+              "domains_allowed": ["trusted.com"],
+              "max_requests_per_hour": 50
+            }
+          }
+        ],
+        "delegation": {
+          "depth": 0,
+          "max_depth": 2,
+          "chain": ["agent-multi-01"]
+        }
+      },
+      "expected_result": "VALID",
+      "request_tests": [
+        {
+          "action": "api.call",
+          "target_url": "https://example.org/data",
+          "expected": "AUTHORIZED",
+          "note": "Matches first capability"
+        },
+        {
+          "action": "api.call",
+          "target_url": "https://trusted.com/data",
+          "expected": "AUTHORIZED",
+          "note": "Matches second capability (OR semantics)"
+        },
+        {
+          "action": "api.call",
+          "target_url": "https://other.com/data",
+          "expected": "FORBIDDEN",
+          "error_code": "aap_domain_not_allowed",
+          "note": "Doesn't match either capability's domain constraints"
+        }
+      ],
+      "note": "First matching capability is used. OR semantics: any matching capability allows the action."
+    }
+  ],
+  "metadata": {
+    "specification_section": "5.6 (Constraint Semantics), 7.5 (Capability Enforcement)",
+    "constraint_semantics": {
+      "multiple_capabilities": "OR - any matching capability allows action",
+      "multiple_constraints": "AND - all constraints must be satisfied"
+    },
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

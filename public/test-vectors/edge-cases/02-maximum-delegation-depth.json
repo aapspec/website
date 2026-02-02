@@ -1,0 +1,151 @@
+{
+  "name": "maximum-delegation-depth",
+  "description": "Edge cases for delegation at maximum depth",
+  "base_token": {
+    "iss": "https://as.example.com",
+    "sub": "agent-delegation-test-01",
+    "aud": "https://api.example.com",
+    "exp": 1735689600,
+    "iat": 1735686000,
+    "jti": "delegation-depth-base",
+    "agent": {
+      "id": "agent-delegation-test-01",
+      "type": "llm-autonomous",
+      "operator": "org:test"
+    },
+    "task": {
+      "id": "task-delegation-001",
+      "purpose": "test_max_depth"
+    },
+    "capabilities": [
+      {
+        "action": "test.action",
+        "constraints": {
+          "max_depth": 3
+        }
+      }
+    ],
+    "delegation": {
+      "depth": 0,
+      "max_depth": 3,
+      "chain": ["agent-delegation-test-01"]
+    }
+  },
+  "test_scenarios": [
+    {
+      "name": "depth_0_valid",
+      "description": "Original token at depth 0",
+      "token": {
+        "delegation": {
+          "depth": 0,
+          "max_depth": 3,
+          "chain": ["agent-delegation-test-01"]
+        }
+      },
+      "expected_result": "VALID",
+      "can_delegate": true
+    },
+    {
+      "name": "depth_1_valid",
+      "description": "First delegation at depth 1",
+      "token": {
+        "delegation": {
+          "depth": 1,
+          "max_depth": 3,
+          "chain": ["agent-delegation-test-01", "tool-a"],
+          "parent_jti": "delegation-depth-base"
+        }
+      },
+      "expected_result": "VALID",
+      "can_delegate": true
+    },
+    {
+      "name": "depth_2_valid",
+      "description": "Second delegation at depth 2",
+      "token": {
+        "delegation": {
+          "depth": 2,
+          "max_depth": 3,
+          "chain": ["agent-delegation-test-01", "tool-a", "tool-b"],
+          "parent_jti": "delegation-depth-1"
+        }
+      },
+      "expected_result": "VALID",
+      "can_delegate": true
+    },
+    {
+      "name": "depth_3_at_max",
+      "description": "At maximum depth (depth == max_depth)",
+      "token": {
+        "delegation": {
+          "depth": 3,
+          "max_depth": 3,
+          "chain": ["agent-delegation-test-01", "tool-a", "tool-b", "tool-c"],
+          "parent_jti": "delegation-depth-2"
+        }
+      },
+      "expected_result": "VALID",
+      "can_delegate": false,
+      "note": "Token is valid but cannot be delegated further"
+    },
+    {
+      "name": "depth_4_exceeds",
+      "description": "Exceeds maximum depth",
+      "token": {
+        "delegation": {
+          "depth": 4,
+          "max_depth": 3,
+          "chain": ["agent-delegation-test-01", "tool-a", "tool-b", "tool-c", "tool-d"],
+          "parent_jti": "delegation-depth-3"
+        }
+      },
+      "expected_result": "INVALID",
+      "error_code": "aap_excessive_delegation",
+      "http_status": 403
+    },
+    {
+      "name": "as_prevents_depth_4",
+      "description": "AS should prevent issuing token at depth 4",
+      "token_exchange_request": {
+        "parent_token_depth": 3,
+        "parent_token_max_depth": 3
+      },
+      "as_behavior": "MUST_REJECT",
+      "error_code": "invalid_grant",
+      "error_description_contains": "delegation depth",
+      "reason": "AS must not issue token if resulting depth >= max_depth"
+    },
+    {
+      "name": "zero_max_depth",
+      "description": "max_depth=0 means no delegation allowed",
+      "token": {
+        "delegation": {
+          "depth": 0,
+          "max_depth": 0,
+          "chain": ["agent-no-delegation"]
+        }
+      },
+      "expected_result": "VALID",
+      "can_delegate": false,
+      "note": "Token is valid but delegation is prohibited"
+    },
+    {
+      "name": "attempt_delegate_when_prohibited",
+      "description": "Attempting to delegate when max_depth=0",
+      "token_exchange_request": {
+        "parent_token_depth": 0,
+        "parent_token_max_depth": 0
+      },
+      "as_behavior": "MUST_REJECT",
+      "error_code": "invalid_grant",
+      "reason": "Cannot delegate when max_depth=0"
+    }
+  ],
+  "metadata": {
+    "specification_section": "5.7 (Delegation Chain Semantics), 7.7 (Delegation Validation)",
+    "depth_calculation": "depth=0 (origin), depth=n (n delegations via Token Exchange)",
+    "validation_rule": "depth <= max_depth (MUST enforce by both AS and RS)",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

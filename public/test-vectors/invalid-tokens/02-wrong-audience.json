@@ -1,0 +1,66 @@
+{
+  "name": "wrong-audience",
+  "description": "Token with audience not matching Resource Server",
+  "token_payload": {
+    "iss": "https://as.example.com",
+    "sub": "agent-test-01",
+    "aud": "https://different-api.example.com",
+    "exp": 1735689600,
+    "iat": 1735686000,
+    "jti": "wrong-aud-001",
+    "agent": {
+      "id": "agent-test-01",
+      "type": "llm-autonomous",
+      "operator": "org:test"
+    },
+    "task": {
+      "id": "task-001",
+      "purpose": "test"
+    },
+    "capabilities": [
+      {
+        "action": "test.action"
+      }
+    ],
+    "delegation": {
+      "depth": 0,
+      "max_depth": 2,
+      "chain": ["agent-test-01"]
+    }
+  },
+  "resource_server": {
+    "audience": "https://api.example.com",
+    "note": "RS expects 'https://api.example.com' but token has 'https://different-api.example.com'"
+  },
+  "validation_errors": [
+    {
+      "error_type": "invalid_audience",
+      "error_code": "invalid_token",
+      "http_status": 401,
+      "description": "Token audience does not match Resource Server identifier",
+      "specification_section": "7.1 (Standard Token Validation)",
+      "validation_check": "aud == RS_AUDIENCE"
+    }
+  ],
+  "test_cases": [
+    {
+      "name": "validate_wrong_audience",
+      "resource_server_audience": "https://api.example.com",
+      "expected_result": "REJECTED",
+      "error_code": "invalid_token",
+      "error_description_contains": "audience",
+      "http_status": 401
+    },
+    {
+      "name": "validate_correct_audience",
+      "resource_server_audience": "https://different-api.example.com",
+      "expected_result": "ACCEPTED",
+      "description": "Token should be accepted by the RS matching the audience"
+    }
+  ],
+  "metadata": {
+    "specification_section": "7.1, 12.8 (RS Security)",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aap-protocol.org/schemas/aap-audit.schema.json",
+  "title": "AAP Audit Claim",
+  "description": "Schema for the 'audit' claim in AAP tokens, defining audit and logging requirements",
+  "type": "object",
+  "required": ["trace_id"],
+  "properties": {
+    "trace_id": {
+      "type": "string",
+      "description": "Unique identifier for audit trail tracking. SHOULD be rotated per session for privacy.",
+      "examples": [
+        "550e8400-e29b-41d4-a716-446655440000",
+        "trace-2024-001-abc123"
+      ]
+    },
+    "log_level": {
+      "type": "string",
+      "enum": ["none", "minimal", "standard", "full", "debug"],
+      "description": "Required logging level for actions performed with this token",
+      "default": "standard"
+    },
+    "retention_period": {
+      "type": "integer",
+      "description": "Required log retention period in days",
+      "minimum": 0,
+      "examples": [30, 90, 365]
+    },
+    "log_destination": {
+      "type": "string",
+      "format": "uri",
+      "description": "Endpoint where audit logs should be sent",
+      "examples": [
+        "https://audit.example.com/logs",
+        "syslog://logs.example.com:514"
+      ]
+    },
+    "compliance_framework": {
+      "type": "array",
+      "description": "List of compliance frameworks this audit must satisfy",
+      "items": {
+        "type": "string",
+        "enum": ["SOC2", "ISO27001", "HIPAA", "GDPR", "PCI-DSS", "FedRAMP"]
+      },
+      "examples": [
+        ["SOC2", "GDPR"],
+        ["HIPAA"]
+      ]
+    },
+    "pii_logging": {
+      "type": "string",
+      "enum": ["prohibited", "hashed", "encrypted", "allowed"],
+      "description": "How PII should be handled in logs",
+      "default": "prohibited"
+    },
+    "required_fields": {
+      "type": "array",
+      "description": "List of fields that MUST be logged for each action",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        ["timestamp", "agent_id", "action", "resource", "outcome"],
+        ["timestamp", "agent_id", "task_id", "action", "ip_address", "outcome"]
+      ]
+    },
+    "tamper_evident": {
+      "type": "boolean",
+      "description": "Whether logs must be tamper-evident (e.g., cryptographic chaining)",
+      "default": false
+    }
+  }
+}

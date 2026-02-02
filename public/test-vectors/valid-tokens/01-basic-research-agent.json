@@ -1,0 +1,94 @@
+{
+  "name": "basic-research-agent",
+  "description": "Basic research agent with web search capability",
+  "token_payload": {
+    "iss": "https://as.example.com",
+    "sub": "agent-researcher-01",
+    "aud": "https://api.example.com",
+    "exp": 1735689600,
+    "iat": 1735686000,
+    "jti": "550e8400-e29b-41d4-a716-446655440000",
+    "agent": {
+      "id": "agent-researcher-01",
+      "type": "llm-autonomous",
+      "operator": "org:acme-corp",
+      "name": "Research Assistant",
+      "version": "1.0.0"
+    },
+    "task": {
+      "id": "task-research-001",
+      "purpose": "research_climate_data",
+      "created_at": 1735686000,
+      "created_by": "user:alice",
+      "category": "research"
+    },
+    "capabilities": [
+      {
+        "action": "search.web",
+        "description": "Search web resources within allowed domains",
+        "constraints": {
+          "domains_allowed": ["example.org", "trusted.com"],
+          "max_requests_per_hour": 100,
+          "max_requests_per_minute": 10
+        }
+      }
+    ],
+    "delegation": {
+      "depth": 0,
+      "max_depth": 2,
+      "chain": ["agent-researcher-01"]
+    },
+    "audit": {
+      "trace_id": "trace-550e8400-e29b-41d4-a716-446655440001",
+      "log_level": "standard"
+    }
+  },
+  "test_cases": [
+    {
+      "name": "valid_search_allowed_domain",
+      "request": {
+        "action": "search.web",
+        "target_url": "https://example.org/article",
+        "method": "GET"
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Request to allowed domain should succeed"
+    },
+    {
+      "name": "valid_search_subdomain",
+      "request": {
+        "action": "search.web",
+        "target_url": "https://data.example.org/climate",
+        "method": "GET"
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Subdomain of allowed domain should succeed (DNS suffix matching)"
+    },
+    {
+      "name": "invalid_domain",
+      "request": {
+        "action": "search.web",
+        "target_url": "https://malicious.com/data",
+        "method": "GET"
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_domain_not_allowed",
+      "description": "Request to non-allowed domain should fail"
+    },
+    {
+      "name": "invalid_action",
+      "request": {
+        "action": "cms.publish",
+        "method": "POST"
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_invalid_capability",
+      "description": "Request for action not in capabilities should fail"
+    }
+  ],
+  "metadata": {
+    "specification_section": "7.5 (Capability Enforcement), 5.6.2 (Domain Constraints)",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

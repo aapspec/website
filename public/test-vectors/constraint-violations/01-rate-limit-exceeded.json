@@ -1,0 +1,136 @@
+{
+  "name": "rate-limit-exceeded",
+  "description": "Token with rate limiting constraints and violation scenarios",
+  "token_payload": {
+    "iss": "https://as.example.com",
+    "sub": "agent-rate-test-01",
+    "aud": "https://api.example.com",
+    "exp": 1735689600,
+    "iat": 1735686000,
+    "jti": "rate-limit-test-001",
+    "agent": {
+      "id": "agent-rate-test-01",
+      "type": "llm-autonomous",
+      "operator": "org:test"
+    },
+    "task": {
+      "id": "task-rate-001",
+      "purpose": "test_rate_limiting"
+    },
+    "capabilities": [
+      {
+        "action": "api.call",
+        "constraints": {
+          "max_requests_per_hour": 50,
+          "max_requests_per_minute": 5
+        }
+      }
+    ],
+    "delegation": {
+      "depth": 0,
+      "max_depth": 2,
+      "chain": ["agent-rate-test-01"]
+    }
+  },
+  "test_scenarios": [
+    {
+      "name": "hourly_limit_exceeded",
+      "description": "51st request in current hour should fail",
+      "setup": {
+        "previous_requests_this_hour": 50,
+        "current_hour_bucket": 481860
+      },
+      "request": {
+        "action": "api.call",
+        "method": "GET",
+        "timestamp": 1735687200
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_constraint_violation",
+      "http_status": 429,
+      "error_description_contains": "rate limit",
+      "retry_after_seconds": 3600
+    },
+    {
+      "name": "hourly_limit_within",
+      "description": "50th request in current hour should succeed",
+      "setup": {
+        "previous_requests_this_hour": 49,
+        "current_hour_bucket": 481860
+      },
+      "request": {
+        "action": "api.call",
+        "method": "GET",
+        "timestamp": 1735687200
+      },
+      "expected_result": "AUTHORIZED"
+    },
+    {
+      "name": "minute_limit_exceeded",
+      "description": "6th request in sliding 60-second window should fail",
+      "setup": {
+        "request_timestamps_last_60s": [
+          1735686000,
+          1735686010,
+          1735686020,
+          1735686030,
+          1735686040
+        ]
+      },
+      "request": {
+        "action": "api.call",
+        "method": "GET",
+        "timestamp": 1735686050
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_constraint_violation",
+      "http_status": 429
+    },
+    {
+      "name": "minute_limit_sliding_window",
+      "description": "Request should succeed if old requests are outside 60s window",
+      "setup": {
+        "request_timestamps": [
+          1735685940,
+          1735686010,
+          1735686020,
+          1735686030,
+          1735686040
+        ],
+        "note": "First timestamp (1735685940) is > 60s ago and should be excluded"
+      },
+      "request": {
+        "action": "api.call",
+        "method": "GET",
+        "timestamp": 1735686050
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Only 4 requests in sliding window, under limit of 5"
+    },
+    {
+      "name": "new_hour_resets_counter",
+      "description": "Counter should reset at hour boundary",
+      "setup": {
+        "previous_requests_this_hour": 50,
+        "previous_hour_bucket": 481860,
+        "new_hour_bucket": 481861
+      },
+      "request": {
+        "action": "api.call",
+        "method": "GET",
+        "timestamp": 1735690800,
+        "note": "New hour, counter resets"
+      },
+      "expected_result": "AUTHORIZED"
+    }
+  ],
+  "metadata": {
+    "specification_section": "5.6.1 (Rate Limiting Constraints)",
+    "rate_limit_semantics": {
+      "max_requests_per_hour": "Fixed hourly window, resets at minute 0",
+      "max_requests_per_minute": "Sliding 60-second window"
+    },
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

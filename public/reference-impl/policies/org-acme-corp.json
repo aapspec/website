@@ -1,0 +1,54 @@
+{
+  "policy_id": "policy-research-agents-v1",
+  "policy_version": "1.0",
+  "applies_to": {
+    "agent_type": "llm-autonomous",
+    "operator": "org:acme-corp"
+  },
+  "allowed_capabilities": [
+    {
+      "action": "search.web",
+      "description": "Search web resources within allowed domains",
+      "default_constraints": {
+        "domains_allowed": ["example.org", "trusted.com"],
+        "max_requests_per_hour": 100,
+        "max_requests_per_minute": 10
+      }
+    },
+    {
+      "action": "cms.create_draft",
+      "description": "Create draft content in CMS",
+      "default_constraints": {
+        "max_requests_per_hour": 20
+      }
+    },
+    {
+      "action": "cms.publish",
+      "description": "Publish content in CMS (requires approval)",
+      "requires_oversight": true
+    },
+    {
+      "action": "data.analyze",
+      "description": "Analyze data within constraints",
+      "default_constraints": {
+        "max_requests_per_hour": 50,
+        "data_classification_max": "internal"
+      }
+    }
+  ],
+  "global_constraints": {
+    "token_lifetime": 3600,
+    "max_delegation_depth": 2,
+    "require_pop": false
+  },
+  "oversight": {
+    "level": "approval",
+    "requires_human_approval_for": ["cms.publish", "data.delete"],
+    "approval_reference": "https://approval.acme-corp.com/agent-actions"
+  },
+  "audit": {
+    "log_level": "full",
+    "retention_period_days": 90,
+    "compliance_framework": ["SOC2", "GDPR"]
+  }
+}

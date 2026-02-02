@@ -1,0 +1,121 @@
+{
+  "name": "invalid-delegation-chain",
+  "description": "Tokens with malformed delegation chains",
+  "variants": [
+    {
+      "variant_name": "chain_length_mismatch",
+      "description": "Chain length doesn't match depth + 1",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "chain-mismatch-001",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "test.action"
+          }
+        ],
+        "delegation": {
+          "depth": 2,
+          "max_depth": 3,
+          "chain": ["agent-test-01", "tool-a"]
+        }
+      },
+      "validation_error": {
+        "error_code": "aap_invalid_delegation_chain",
+        "http_status": 403,
+        "description": "Chain length (2) doesn't match depth+1 (3)",
+        "validation_check": "len(chain) == depth + 1"
+      }
+    },
+    {
+      "variant_name": "empty_chain",
+      "description": "Delegation chain is empty",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "empty-chain-001",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "test.action"
+          }
+        ],
+        "delegation": {
+          "depth": 1,
+          "max_depth": 2,
+          "chain": []
+        }
+      },
+      "validation_error": {
+        "error_code": "aap_invalid_delegation_chain",
+        "http_status": 403,
+        "description": "Chain is empty but depth is 1",
+        "validation_check": "len(chain) > 0"
+      }
+    },
+    {
+      "variant_name": "missing_depth",
+      "description": "Delegation claim missing required 'depth' field",
+      "token_payload": {
+        "iss": "https://as.example.com",
+        "sub": "agent-test-01",
+        "aud": "https://api.example.com",
+        "exp": 1735689600,
+        "iat": 1735686000,
+        "jti": "missing-depth-001",
+        "agent": {
+          "id": "agent-test-01",
+          "type": "llm-autonomous",
+          "operator": "org:test"
+        },
+        "task": {
+          "id": "task-001",
+          "purpose": "test"
+        },
+        "capabilities": [
+          {
+            "action": "test.action"
+          }
+        ],
+        "delegation": {
+          "max_depth": 2,
+          "chain": ["agent-test-01"]
+        }
+      },
+      "validation_error": {
+        "error_code": "aap_invalid_delegation_chain",
+        "http_status": 403,
+        "description": "Delegation claim missing required 'depth' field",
+        "validation_check": "delegation.depth is not None"
+      }
+    }
+  ],
+  "metadata": {
+    "specification_section": "7.7 (Delegation Chain Validation), 5.7",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

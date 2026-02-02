@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aap-protocol.org/schemas/aap-delegation.schema.json",
+  "title": "AAP Delegation Claim",
+  "description": "Schema for the 'delegation' claim in AAP tokens, tracking authorization delegation chains",
+  "type": "object",
+  "required": ["depth", "max_depth"],
+  "properties": {
+    "depth": {
+      "type": "integer",
+      "description": "Current delegation depth (0 = original token, 1+ = derived via Token Exchange)",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "max_depth": {
+      "type": "integer",
+      "description": "Maximum allowed delegation depth",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "chain": {
+      "type": "array",
+      "description": "Delegation chain from origin to current token. chain[0] = origin, chain[n] = current.",
+      "items": {
+        "type": "string",
+        "description": "Agent or tool identifier in the delegation chain"
+      },
+      "minItems": 1,
+      "examples": [
+        [
+          "spiffe://trust.example.com/agent/researcher-01",
+          "spiffe://trust.example.com/tool/web-scraper",
+          "https://as.example.com/agents/translator"
+        ]
+      ]
+    },
+    "parent_jti": {
+      "type": "string",
+      "description": "JTI (JWT ID) of the parent token from which this was derived",
+      "examples": ["550e8400-e29b-41d4-a716-446655440000"]
+    },
+    "issued_at_depth": {
+      "type": "object",
+      "description": "Timestamps when token was issued at each depth (for delegation tracking)",
+      "additionalProperties": {
+        "type": "integer",
+        "description": "Unix timestamp"
+      },
+      "examples": [
+        {
+          "0": 1704067200,
+          "1": 1704067800,
+          "2": 1704068400
+        }
+      ]
+    },
+    "privilege_reduction": {
+      "type": "object",
+      "description": "Description of how privileges were reduced during delegation",
+      "properties": {
+        "capabilities_removed": {
+          "type": "array",
+          "description": "List of actions removed during delegation",
+          "items": {"type": "string"}
+        },
+        "constraints_added": {
+          "type": "array",
+          "description": "List of additional constraints added during delegation",
+          "items": {"type": "string"}
+        },
+        "lifetime_reduced_by": {
+          "type": "integer",
+          "description": "Number of seconds token lifetime was reduced by"
+        }
+      }
+    }
+  }
+}

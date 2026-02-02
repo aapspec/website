@@ -1,0 +1,128 @@
+{
+  "name": "domain-restrictions",
+  "description": "Domain allowlist and blocklist constraint violations",
+  "token_payload": {
+    "iss": "https://as.example.com",
+    "sub": "agent-domain-test-01",
+    "aud": "https://api.example.com",
+    "exp": 1735689600,
+    "iat": 1735686000,
+    "jti": "domain-test-001",
+    "agent": {
+      "id": "agent-domain-test-01",
+      "type": "llm-autonomous",
+      "operator": "org:test"
+    },
+    "task": {
+      "id": "task-domain-001",
+      "purpose": "test_domain_restrictions"
+    },
+    "capabilities": [
+      {
+        "action": "fetch.data",
+        "constraints": {
+          "domains_allowed": ["example.org", "trusted.com"],
+          "domains_blocked": ["banned.example.org"]
+        }
+      }
+    ],
+    "delegation": {
+      "depth": 0,
+      "max_depth": 2,
+      "chain": ["agent-domain-test-01"]
+    }
+  },
+  "test_scenarios": [
+    {
+      "name": "allowed_domain_exact",
+      "request": {
+        "action": "fetch.data",
+        "target_url": "https://example.org/data"
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Exact match with allowed domain"
+    },
+    {
+      "name": "allowed_domain_subdomain",
+      "request": {
+        "action": "fetch.data",
+        "target_url": "https://api.example.org/data"
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Subdomain of allowed domain (DNS suffix matching)"
+    },
+    {
+      "name": "allowed_domain_deep_subdomain",
+      "request": {
+        "action": "fetch.data",
+        "target_url": "https://deep.nested.example.org/data"
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Deep subdomain of allowed domain"
+    },
+    {
+      "name": "blocked_domain_precedence",
+      "request": {
+        "action": "fetch.data",
+        "target_url": "https://banned.example.org/data"
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_domain_not_allowed",
+      "description": "Blocked domain takes precedence over allowed parent domain"
+    },
+    {
+      "name": "not_in_allowlist",
+      "request": {
+        "action": "fetch.data",
+        "target_url": "https://malicious.com/data"
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_domain_not_allowed",
+      "description": "Domain not in allowlist"
+    },
+    {
+      "name": "not_suffix_match",
+      "request": {
+        "action": "fetch.data",
+        "target_url": "https://notexample.org/data"
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_domain_not_allowed",
+      "description": "Domain 'notexample.org' is not a suffix match for 'example.org'"
+    },
+    {
+      "name": "case_sensitive",
+      "request": {
+        "action": "fetch.data",
+        "target_url": "https://EXAMPLE.ORG/data"
+      },
+      "expected_result": "AUTHORIZED",
+      "note": "Domain matching SHOULD be case-insensitive per DNS standards"
+    },
+    {
+      "name": "port_ignored",
+      "request": {
+        "action": "fetch.data",
+        "target_url": "https://example.org:8080/data"
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Port number should not affect domain matching"
+    },
+    {
+      "name": "path_ignored",
+      "request": {
+        "action": "fetch.data",
+        "target_url": "https://example.org/path/to/resource?query=value"
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Path and query parameters should not affect domain matching"
+    }
+  ],
+  "metadata": {
+    "specification_section": "5.6.2 (Domain and Network Constraints)",
+    "matching_algorithm": "DNS suffix matching (rightmost). subdomain.example.org matches example.org in allowlist.",
+    "precedence": "domains_blocked takes precedence over domains_allowed",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

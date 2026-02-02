@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aap-protocol.org/schemas/aap-constraints.schema.json",
+  "title": "AAP Capability Constraints",
+  "description": "Schema for constraint objects within AAP capabilities",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "max_requests_per_hour": {
+      "type": "integer",
+      "description": "Maximum number of requests allowed per hour (fixed window, resets at minute 0)",
+      "minimum": 1,
+      "examples": [50, 100, 1000]
+    },
+    "max_requests_per_minute": {
+      "type": "integer",
+      "description": "Maximum number of requests allowed per minute (sliding 60-second window)",
+      "minimum": 1,
+      "examples": [10, 20, 50]
+    },
+    "max_requests_per_day": {
+      "type": "integer",
+      "description": "Maximum number of requests allowed per day (fixed window, resets at midnight UTC)",
+      "minimum": 1,
+      "examples": [500, 1000, 10000]
+    },
+    "domains_allowed": {
+      "type": "array",
+      "description": "List of allowed domains (DNS suffix matching). subdomain.example.org matches example.org in allowlist.",
+      "items": {
+        "type": "string",
+        "format": "hostname"
+      },
+      "minItems": 1,
+      "examples": [
+        ["example.org", "trusted.com"],
+        ["api.example.com"]
+      ]
+    },
+    "domains_blocked": {
+      "type": "array",
+      "description": "List of blocked domains (takes precedence over domains_allowed)",
+      "items": {
+        "type": "string",
+        "format": "hostname"
+      },
+      "examples": [
+        ["malicious.com", "blocked.net"]
+      ]
+    },
+    "ip_ranges_allowed": {
+      "type": "array",
+      "description": "List of allowed IP ranges in CIDR notation",
+      "items": {
+        "type": "string",
+        "pattern": "^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$"
+      },
+      "examples": [
+        ["192.168.1.0/24", "10.0.0.0/8"]
+      ]
+    },
+    "max_depth": {
+      "type": "integer",
+      "description": "Maximum delegation depth allowed (0 = no delegation)",
+      "minimum": 0,
+      "maximum": 10,
+      "examples": [2, 3, 5]
+    },
+    "time_window": {
+      "type": "object",
+      "description": "Time window during which requests are allowed",
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Request must be after this time (inclusive)"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Request must be before this time (exclusive)"
+        }
+      },
+      "required": ["start", "end"]
+    },
+    "allowed_methods": {
+      "type": "array",
+      "description": "List of allowed HTTP methods",
+      "items": {
+        "type": "string",
+        "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
+      },
+      "minItems": 1,
+      "examples": [
+        ["GET", "POST"],
+        ["GET"]
+      ]
+    },
+    "max_response_size": {
+      "type": "integer",
+      "description": "Maximum response size in bytes",
+      "minimum": 1,
+      "examples": [1048576, 10485760]
+    },
+    "max_request_size": {
+      "type": "integer",
+      "description": "Maximum request payload size in bytes",
+      "minimum": 1,
+      "examples": [1048576, 5242880]
+    },
+    "require_approval_threshold": {
+      "type": "number",
+      "description": "Threshold value requiring human approval (context-dependent)",
+      "examples": [1000, 10000.50]
+    },
+    "allowed_regions": {
+      "type": "array",
+      "description": "List of allowed geographic regions (ISO 3166-1 alpha-2 codes)",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z]{2}$"
+      },
+      "examples": [
+        ["US", "CA", "GB"],
+        ["EU"]
+      ]
+    },
+    "data_classification_max": {
+      "type": "string",
+      "enum": ["public", "internal", "confidential", "restricted"],
+      "description": "Maximum data classification level the agent can access"
+    },
+    "require_encryption": {
+      "type": "boolean",
+      "description": "Whether encryption (TLS) is required for requests",
+      "default": true
+    }
+  }
+}

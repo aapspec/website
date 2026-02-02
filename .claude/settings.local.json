@@ -1,0 +1,18 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm build:*)",
+      "Bash(pnpm add:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(curl:*)",
+      "Bash(test:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh api:*)"
+    ]
+  }
+}

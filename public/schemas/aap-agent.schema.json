@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aap-protocol.org/schemas/aap-agent.schema.json",
+  "title": "AAP Agent Claim",
+  "description": "Schema for the 'agent' claim in AAP tokens, representing the autonomous agent's identity",
+  "type": "object",
+  "required": ["id", "type", "operator"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the agent. SHOULD be a URI (https://, spiffe://, did:, etc.)",
+      "examples": [
+        "spiffe://trust.example.com/agent/researcher-01",
+        "https://agents.example.com/my-agent",
+        "did:web:example.com:agent:123"
+      ]
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of agent (software, model-based, hybrid, etc.)",
+      "examples": [
+        "software",
+        "model-based",
+        "hybrid",
+        "autonomous-llm",
+        "rpa-bot"
+      ]
+    },
+    "operator": {
+      "type": "string",
+      "description": "Identifier of the organization or individual responsible for the agent",
+      "examples": [
+        "https://example.com",
+        "organization:acme-corp",
+        "urn:uuid:550e8400-e29b-41d4-a716-446655440000"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name for the agent",
+      "examples": [
+        "Research Assistant Bot",
+        "Content Creator Agent"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "description": "Version of the agent software/model",
+      "examples": ["1.0.0", "2.3.1-beta"]
+    },
+    "model": {
+      "type": "string",
+      "description": "For model-based agents, identifier of the AI model used",
+      "examples": [
+        "gpt-4",
+        "claude-3-opus",
+        "custom-llm-v2"
+      ]
+    },
+    "capabilities_verified": {
+      "type": "boolean",
+      "description": "Whether the operator has verified the agent's claimed capabilities",
+      "default": false
+    },
+    "certification": {
+      "type": "object",
+      "description": "Optional certification information",
+      "properties": {
+        "authority": {
+          "type": "string",
+          "description": "Certification authority identifier"
+        },
+        "level": {
+          "type": "string",
+          "description": "Certification level or class"
+        },
+        "expires": {
+          "type": "integer",
+          "description": "Unix timestamp when certification expires"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "name": "clock-skew-tolerance",
+  "description": "Edge cases for clock skew tolerance (5-minute window)",
+  "token_payload": {
+    "iss": "https://as.example.com",
+    "sub": "agent-clock-test-01",
+    "aud": "https://api.example.com",
+    "exp": 1735686000,
+    "iat": 1735682400,
+    "jti": "clock-skew-test-001",
+    "agent": {
+      "id": "agent-clock-test-01",
+      "type": "llm-autonomous",
+      "operator": "org:test"
+    },
+    "task": {
+      "id": "task-clock-001",
+      "purpose": "test_clock_skew"
+    },
+    "capabilities": [
+      {
+        "action": "test.action"
+      }
+    ],
+    "delegation": {
+      "depth": 0,
+      "max_depth": 2,
+      "chain": ["agent-clock-test-01"]
+    }
+  },
+  "test_scenarios": [
+    {
+      "name": "exactly_expired",
+      "description": "Token at exact expiration time",
+      "validation_time": 1735686000,
+      "token_exp": 1735686000,
+      "expected_result": "REJECTED",
+      "reason": "Token is expired at exp time (exclusive boundary)"
+    },
+    {
+      "name": "one_second_after_exp",
+      "description": "Token one second after expiration",
+      "validation_time": 1735686001,
+      "token_exp": 1735686000,
+      "expected_result": "REJECTED",
+      "reason": "Token is expired"
+    },
+    {
+      "name": "within_skew_tolerance",
+      "description": "Token 4 minutes past expiration (within 5-min tolerance)",
+      "validation_time": 1735686240,
+      "token_exp": 1735686000,
+      "clock_skew_tolerance": 300,
+      "expected_result": "ACCEPTED",
+      "reason": "Within 5-minute clock skew tolerance"
+    },
+    {
+      "name": "at_skew_boundary",
+      "description": "Token exactly 5 minutes past expiration",
+      "validation_time": 1735686300,
+      "token_exp": 1735686000,
+      "clock_skew_tolerance": 300,
+      "expected_result": "ACCEPTED",
+      "reason": "At boundary of 5-minute tolerance (inclusive)"
+    },
+    {
+      "name": "beyond_skew_tolerance",
+      "description": "Token 5 minutes + 1 second past expiration",
+      "validation_time": 1735686301,
+      "token_exp": 1735686000,
+      "clock_skew_tolerance": 300,
+      "expected_result": "REJECTED",
+      "reason": "Beyond 5-minute clock skew tolerance"
+    },
+    {
+      "name": "future_token_within_skew",
+      "description": "Token not yet valid but within skew (if nbf present)",
+      "validation_time": 1735681800,
+      "token_nbf": 1735682100,
+      "token_exp": 1735686000,
+      "clock_skew_tolerance": 300,
+      "expected_result": "ACCEPTED",
+      "reason": "nbf is 5 minutes in future but within skew tolerance"
+    },
+    {
+      "name": "future_token_beyond_skew",
+      "description": "Token not yet valid and beyond skew",
+      "validation_time": 1735681700,
+      "token_nbf": 1735682100,
+      "token_exp": 1735686000,
+      "clock_skew_tolerance": 300,
+      "expected_result": "REJECTED",
+      "reason": "nbf is 6+ minutes in future, beyond skew tolerance"
+    }
+  ],
+  "metadata": {
+    "specification_section": "7.1 (Standard Token Validation), 12.8 (Clock Skew)",
+    "clock_skew_tolerance": "5 minutes (300 seconds) RECOMMENDED",
+    "note": "Clock skew tolerance should be applied to both exp and nbf validation",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

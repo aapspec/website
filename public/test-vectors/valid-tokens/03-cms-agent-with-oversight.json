@@ -1,0 +1,120 @@
+{
+  "name": "cms-agent-with-oversight",
+  "description": "Content management agent with human approval requirements",
+  "token_payload": {
+    "iss": "https://as.example.com",
+    "sub": "agent-content-creator-01",
+    "aud": "https://cms.example.com",
+    "exp": 1735689600,
+    "iat": 1735686000,
+    "jti": "550e8400-e29b-41d4-a716-446655440010",
+    "agent": {
+      "id": "agent-content-creator-01",
+      "type": "llm-autonomous",
+      "operator": "org:acme-corp",
+      "name": "Content Creator Bot",
+      "version": "2.1.0",
+      "model": {
+        "provider": "openai",
+        "id": "gpt-4",
+        "version": "gpt-4-0613"
+      }
+    },
+    "task": {
+      "id": "task-content-001",
+      "purpose": "create_blog_posts",
+      "created_at": 1735686000,
+      "created_by": "user:bob",
+      "category": "content-creation",
+      "priority": "medium"
+    },
+    "capabilities": [
+      {
+        "action": "cms.create_draft",
+        "description": "Create draft blog posts",
+        "constraints": {
+          "max_requests_per_hour": 20
+        }
+      },
+      {
+        "action": "cms.update_draft",
+        "description": "Update existing drafts",
+        "constraints": {
+          "max_requests_per_hour": 50
+        }
+      },
+      {
+        "action": "cms.publish",
+        "description": "Publish content (requires human approval)",
+        "constraints": {
+          "max_requests_per_hour": 10
+        }
+      }
+    ],
+    "oversight": {
+      "level": "approval",
+      "requires_human_approval_for": ["cms.publish"],
+      "approval_reference": "https://approval.acme-corp.com/agent-actions",
+      "supervisor": "user:bob"
+    },
+    "delegation": {
+      "depth": 0,
+      "max_depth": 1,
+      "chain": ["agent-content-creator-01"]
+    },
+    "audit": {
+      "trace_id": "trace-content-550e8400-e29b-41d4-a716-446655440011",
+      "log_level": "full",
+      "retention_period": 90,
+      "compliance_framework": ["SOC2", "GDPR"]
+    }
+  },
+  "test_cases": [
+    {
+      "name": "create_draft_allowed",
+      "request": {
+        "action": "cms.create_draft",
+        "method": "POST",
+        "payload": {
+          "title": "New Blog Post",
+          "content": "Content here..."
+        }
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Creating draft should succeed without approval"
+    },
+    {
+      "name": "update_draft_allowed",
+      "request": {
+        "action": "cms.update_draft",
+        "method": "PUT",
+        "payload": {
+          "draft_id": "draft-123",
+          "content": "Updated content..."
+        }
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Updating draft should succeed without approval"
+    },
+    {
+      "name": "publish_requires_approval",
+      "request": {
+        "action": "cms.publish",
+        "method": "POST",
+        "payload": {
+          "draft_id": "draft-123"
+        }
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_approval_required",
+      "error_description_contains": "requires human approval",
+      "approval_reference": "https://approval.acme-corp.com/agent-actions",
+      "description": "Publishing should require human approval"
+    }
+  ],
+  "metadata": {
+    "specification_section": "7.6 (Oversight Requirement Enforcement), 5.2 (Oversight Claim)",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

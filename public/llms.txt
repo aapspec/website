@@ -1,0 +1,406 @@
+# Agent Authorization Profile (AAP)
+
+> OAuth 2.0 authorization profile for autonomous AI agents
+
+## What is AAP?
+
+Agent Authorization Profile (AAP) is an authorization profile that extends OAuth 2.0 with structured JWT claims specifically designed for autonomous AI agents. It addresses limitations of traditional OAuth scopes when used with AI agents that act as API clients.
+
+## Key Resources
+
+- **Website**: https://aap-protocol.org
+- **Specification**: https://aap-protocol.org/specification
+- **GitHub**: https://github.com/aapspec
+- **IETF Draft**: https://datatracker.ietf.org/doc/draft-aap-oauth-profile/
+- **Mailing List**: oauth@ietf.org
+
+## Quick Navigation
+
+- **/docs** - Documentation hub with all resources
+- **/getting-started** - 6-step quick start guide
+- **/specification** - Complete technical specification
+- **/schemas** - JSON Schema definitions for validation
+- **/test-vectors** - Test cases for conformance testing
+- **/reference-impl** - Working Authorization Server and Resource Server
+- **/migration** - Guide for migrating from OAuth Scopes to AAP
+- **/deployment** - Kubernetes, Docker, and cloud deployment patterns
+- **/faq** - Frequently asked questions
+- **/threat-model** - Security analysis with attack scenarios
+
+## Problem Statement
+
+OAuth 2.0 was designed for user-app-API flows. When applied to autonomous AI agents:
+
+1. **Scopes are too coarse**: "read:articles" doesn't express specific actions or limits
+2. **No task context**: Can't bind authorization to declared purpose
+3. **Delegation untracked**: No visibility into agent-to-tool delegation chains
+4. **No operational limits**: Can't enforce rate limits, domain restrictions, or time windows
+5. **Missing oversight**: Can't specify which actions require human approval
+
+## AAP Solution
+
+AAP extends OAuth 2.0 tokens with five structured claims:
+
+### 1. Agent Identity (`agent` claim)
+
+Explicit, verifiable identity for the autonomous agent.
+
+```json
+"agent": {
+  "id": "agent-researcher-01",
+  "type": "llm-autonomous",
+  "operator": "org:acme-corp",
+  "model": "gpt-4",
+  "runtime_context": {
+    "environment": "production",
+    "version": "1.2.0"
+  }
+}
+```
+
+### 2. Task Binding (`task` claim)
+
+Links token to specific task and declared purpose.
+
+```json
+"task": {
+  "id": "task-123",
+  "purpose": "research_and_draft_article",
+  "data_sensitivity": "public",
+  "context": {
+    "topic": "OAuth for AI agents"
+  }
+}
+```
+
+### 3. Capabilities (`capabilities` claim)
+
+Actions with enforceable constraints (not just scopes).
+
+```json
+"capabilities": [
+  {
+    "action": "search.web",
+    "constraints": {
+      "domains_allowed": ["example.org", "wikipedia.org"],
+      "max_requests_per_hour": 50,
+      "time_window": {
+        "start": "2025-01-01T00:00:00Z",
+        "end": "2025-01-31T23:59:59Z"
+      }
+    }
+  }
+]
+```
+
+**Constraint Types**:
+- `max_requests_per_hour` - Fixed hourly quota (resets at minute 0)
+- `max_requests_per_minute` - Sliding 60-second window
+- `domains_allowed` - DNS suffix matching (rightmost)
+- `domains_blocked` - Blocklist (takes precedence)
+- `time_window` - Inclusive start, exclusive end (ISO 8601)
+- `allowed_methods` - HTTP method restrictions
+- `max_request_size` - Payload size limits
+- `max_depth` - Maximum delegation depth
+
+### 4. Delegation (`delegation` claim)
+
+Auditable delegation chains with depth tracking.
+
+```json
+"delegation": {
+  "depth": 1,
+  "max_depth": 2,
+  "chain": [
+    "spiffe://trust.example.com/agent/main",
+    "spiffe://trust.example.com/tool/scraper"
+  ]
+}
+```
+
+**Delegation Rules**:
+- `depth` increments on each Token Exchange
+- AS reduces privileges at each delegation (rate limits, lifetime)
+- RS rejects if `depth > max_depth`
+- Chain tracks complete lineage from origin
+
+### 5. Oversight (`oversight` claim)
+
+Actions requiring human approval.
+
+```json
+"oversight": {
+  "requires_human_approval_for": [
+    "cms.publish",
+    "payment.execute"
+  ],
+  "approval_reference": "https://approval.example.com/workflow/123"
+}
+```
+
+## OAuth 2.0 Integration
+
+AAP uses standard OAuth 2.0 mechanisms:
+
+- **Client Credentials Grant** (RFC 6749) - Initial token issuance
+- **Token Exchange** (RFC 8693) - Delegation with privilege reduction
+- **DPoP** (RFC 9449) - Proof-of-possession binding
+- **mTLS** (RFC 8705) - Alternative proof-of-possession
+- **Token Introspection** (RFC 7662) - Token validation
+- **Token Revocation** (RFC 7009) - Rapid revocation
+
+## Action Name Grammar
+
+Actions follow ABNF grammar for consistency:
+
+```abnf
+action-name = component *( "." component )
+component = ALPHA *( ALPHA / DIGIT / "-" / "_" )
+```
+
+Examples:
+- `search.web`
+- `cms.create_draft`
+- `cms.publish`
+- `payment.execute`
+
+Matching: Exact match (case-sensitive). Wildcards not supported in v1.
+
+## Validation Pipeline
+
+Resource Servers validate AAP tokens in 7 steps:
+
+1. **JWT Signature** - Verify with AS public key
+2. **Expiration** - Check `exp` claim (with clock skew tolerance)
+3. **Audience** - Validate `aud` matches RS identifier
+4. **Agent Identity** - Validate `agent` claim structure
+5. **Task Binding** - Validate `task` claim consistency
+6. **Capability Matching** - Find capability for requested action
+7. **Constraint Enforcement** - Enforce all constraints in matched capability
+
+Error codes:
+- `invalid_token` - Signature/expiration/audience failure
+- `aap_invalid_capability` - No matching capability
+- `aap_constraint_violation` - Constraint exceeded (e.g., rate limit)
+- `aap_approval_required` - Action requires human approval
+- `aap_excessive_delegation` - Delegation depth exceeded
+
+## JSON Schemas
+
+9 formal schemas for validation:
+
+- **aap-token.schema.json** - Complete token structure
+- **aap-agent.schema.json** - Agent identity
+- **aap-task.schema.json** - Task binding
+- **aap-capabilities.schema.json** - Capabilities array
+- **aap-constraints.schema.json** - Constraint types
+- **aap-oversight.schema.json** - Oversight requirements
+- **aap-delegation.schema.json** - Delegation tracking
+- **aap-context.schema.json** - Execution context
+- **aap-audit.schema.json** - Audit logging
+
+Access: https://aap-protocol.org/schemas
+
+## Test Vectors
+
+80+ test cases organized in 4 categories:
+
+1. **Valid Tokens** (4 vectors) - Should pass validation
+2. **Invalid Tokens** (6 vectors) - Should fail with specific errors
+3. **Constraint Violations** (2 vectors) - Test enforcement
+4. **Edge Cases** (3 vectors) - Clock skew, max delegation, etc.
+
+Access: https://aap-protocol.org/test-vectors
+
+## Reference Implementation
+
+Working Authorization Server and Resource Server in Python (1,500 LOC).
+
+**Authorization Server** (~800 LOC):
+- Client Credentials Grant
+- Token Exchange with privilege reduction
+- Policy-based capability evaluation
+- ES256/RS256 token signing
+- Delegation depth tracking
+
+**Resource Server** (~700 LOC):
+- Complete 7-step validation pipeline
+- Constraint enforcement (5 types)
+- Privacy-preserving error messages
+- Example protected endpoints
+
+Access: https://aap-protocol.org/reference-impl
+
+## Use Cases
+
+### Research Agent
+Agent scrapes web for article research with domain and rate restrictions.
+
+**AAP Solution**:
+- Capability: `search.web`
+- Constraints: `domains_allowed`, `max_requests_per_hour`
+- Task binding to specific research task
+
+### Content Creator
+Agent drafts blog posts but requires human approval to publish.
+
+**AAP Solution**:
+- Capabilities: `cms.create_draft` (unrestricted), `cms.publish` (blocked)
+- Oversight: `requires_human_approval_for: ["cms.publish"]`
+
+### Tool Delegation
+Main agent delegates to specialized tools with reduced permissions.
+
+**AAP Solution**:
+- Token Exchange for each delegation
+- Automatic privilege reduction (rate limits, lifetime)
+- Delegation chain tracking
+- Depth limits prevent excessive delegation
+
+### Multi-tenant Platform
+SaaS with per-organization agent isolation.
+
+**AAP Solution**:
+- `agent.operator` includes tenant ID
+- Rate limits per tenant
+- Audit logs partitioned by operator
+
+### Trading Bot
+Automated trading with strict risk constraints.
+
+**AAP Solution**:
+- Capability: `trading.execute`
+- Constraints: `max_transactions_per_hour`, `time_window` (market hours)
+- Oversight for large transactions
+
+## Security Considerations
+
+**Threats Addressed**:
+- Token theft (proof-of-possession binding)
+- Capability escalation (server-side enforcement)
+- Purpose drift (task binding validation)
+- Excessive delegation (depth limits)
+- Abuse at scale (rate limiting)
+
+**Threat Model**: 15 attack scenarios with mitigations documented at https://aap-protocol.org/threat-model
+
+**Security Profiles**:
+- **Strict**: DPoP required, short lifetimes (5 min), max_depth=1
+- **Standard**: DPoP recommended, 15 min tokens, max_depth=2
+- **Legacy**: Bearer tokens, 1 hour, max_depth=3
+
+## Privacy Considerations
+
+- **Data Minimization**: Use pseudonymous IDs (UUIDs, not names)
+- **Purpose Limitation**: `task.purpose` limits authorization scope
+- **Transparency**: Audit logs show what agents did
+- **Cross-domain Correlation**: Rotate `trace_id` at trust boundaries
+
+**Compliance**: GDPR, CCPA, HIPAA guidance provided.
+
+## Migration from OAuth Scopes
+
+| OAuth Scope | AAP Capability |
+|-------------|----------------|
+| `read:articles` | `cms.read_articles` with domain constraints |
+| `write:cms` | `cms.create_draft` + `cms.publish` (separate) |
+| `admin:*` | Multiple specific capabilities with oversight |
+
+Migration guide: https://aap-protocol.org/migration
+
+## Deployment
+
+Production requirements:
+- HSM or cloud KMS for AS signing keys
+- Distributed rate limiting (Redis)
+- TLS 1.3 everywhere
+- Proof-of-possession (DPoP or mTLS)
+- Token revocation mechanism
+- Audit logging to SIEM
+
+Deployment patterns: https://aap-protocol.org/deployment
+
+## IETF Status
+
+**Current**: Internet-Draft (draft-aap-oauth-profile-00)
+**Target**: RFC via OAuth Working Group
+**Datatracker**: https://datatracker.ietf.org/doc/draft-aap-oauth-profile/
+
+**Timeline**:
+- Q1 2025: Draft-00 submission
+- Q2 2025: Community feedback, IETF presentation
+- Q3-Q4 2025: Iterate based on feedback
+- 2026: Target RFC publication
+
+## Related Standards
+
+- **RFC 6749**: OAuth 2.0 Authorization Framework
+- **RFC 7519**: JSON Web Token (JWT)
+- **RFC 8693**: OAuth 2.0 Token Exchange
+- **RFC 9449**: OAuth 2.0 Demonstrating Proof of Possession (DPoP)
+- **RFC 8705**: OAuth 2.0 Mutual-TLS Client Authentication
+- **RFC 7662**: OAuth 2.0 Token Introspection
+- **RFC 7009**: OAuth 2.0 Token Revocation
+
+## Comparison with Alternatives
+
+### vs. OAuth 2.0 Scopes
+- OAuth: Coarse-grained, no constraints
+- AAP: Fine-grained actions with enforceable limits
+
+### vs. Zanzibar/ReBAC
+- Zanzibar: Resource-level ACLs
+- AAP: Agent identity + operational constraints (complementary)
+
+### vs. Cloud IAM (AWS STS, GCP Workload Identity)
+- Cloud IAM: Vendor-specific, cloud-focused
+- AAP: Vendor-neutral, agent-specific claims
+
+### vs. Service Mesh (Istio, Linkerd)
+- Service Mesh: Network-level identity
+- AAP: Application-level agent semantics (complementary)
+
+## FAQ
+
+**Q: Do I need to replace my OAuth AS?**
+A: No. Extend existing AS to issue AAP claims alongside standard claims.
+
+**Q: Is proof-of-possession required?**
+A: RECOMMENDED in spec, but SHOULD be REQUIRED for high-risk capabilities.
+
+**Q: What if my agent doesn't fit the AAP model?**
+A: AAP is for autonomous agents. Simple bots/scripts can use minimal claims.
+
+**Q: How do I handle revocation?**
+A: Implement OAuth 2.0 Token Revocation (RFC 7009) with rapid distribution (<60s).
+
+**Q: Can AAP help with SOC 2 compliance?**
+A: Yes. Audit logs track access, capabilities define authorization, oversight enforces controls.
+
+Full FAQ: https://aap-protocol.org/faq
+
+## Getting Started
+
+1. **Read Specification**: https://aap-protocol.org/specification
+2. **Review Schemas**: https://aap-protocol.org/schemas
+3. **Run Reference Implementation**: https://aap-protocol.org/reference-impl
+4. **Test with Vectors**: https://aap-protocol.org/test-vectors
+5. **Deploy**: https://aap-protocol.org/deployment
+
+## Contributing
+
+- **IETF Mailing List**: oauth@ietf.org
+- **GitHub**: https://github.com/aapspec
+- **Spec Issues**: https://github.com/aapspec/spec/issues
+- **Discussions**: https://github.com/aapspec/spec/discussions
+
+## License
+
+Apache License 2.0
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: 2026-02-01
+**IETF Status**: Internet-Draft (draft-00)
+**Maintained by**: AAP Working Group

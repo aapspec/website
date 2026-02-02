@@ -1,0 +1,114 @@
+{
+  "name": "delegated-token-depth1",
+  "description": "First-level delegated token with reduced privileges",
+  "parent_token": "01-basic-research-agent.json",
+  "token_payload": {
+    "iss": "https://as.example.com",
+    "sub": "agent-researcher-01",
+    "aud": "https://tool-scraper.example.com",
+    "exp": 1735687800,
+    "iat": 1735686000,
+    "jti": "550e8400-e29b-41d4-a716-446655440002",
+    "agent": {
+      "id": "agent-researcher-01",
+      "type": "llm-autonomous",
+      "operator": "org:acme-corp",
+      "name": "Research Assistant",
+      "version": "1.0.0"
+    },
+    "task": {
+      "id": "task-research-001",
+      "purpose": "research_climate_data",
+      "created_at": 1735686000,
+      "created_by": "user:alice",
+      "category": "research"
+    },
+    "capabilities": [
+      {
+        "action": "search.web",
+        "description": "Search web resources within allowed domains",
+        "constraints": {
+          "domains_allowed": ["example.org"],
+          "max_requests_per_hour": 50,
+          "max_requests_per_minute": 5
+        }
+      }
+    ],
+    "delegation": {
+      "depth": 1,
+      "max_depth": 2,
+      "chain": ["agent-researcher-01", "tool-scraper"],
+      "parent_jti": "550e8400-e29b-41d4-a716-446655440000",
+      "privilege_reduction": {
+        "capabilities_removed": [],
+        "lifetime_reduced_by": 1800
+      }
+    },
+    "audit": {
+      "trace_id": "trace-550e8400-e29b-41d4-a716-446655440003",
+      "log_level": "standard"
+    }
+  },
+  "test_cases": [
+    {
+      "name": "valid_delegated_request",
+      "request": {
+        "action": "search.web",
+        "target_url": "https://example.org/data",
+        "method": "GET"
+      },
+      "expected_result": "AUTHORIZED",
+      "description": "Delegated token with reduced constraints should work"
+    },
+    {
+      "name": "depth_validation",
+      "validation": {
+        "check": "delegation.depth <= delegation.max_depth",
+        "expected": true,
+        "actual_depth": 1,
+        "max_depth": 2
+      },
+      "expected_result": "VALID",
+      "description": "Delegation depth should be within limits"
+    },
+    {
+      "name": "chain_length_validation",
+      "validation": {
+        "check": "len(delegation.chain) == delegation.depth + 1",
+        "expected": true,
+        "chain_length": 2,
+        "expected_length": 2
+      },
+      "expected_result": "VALID",
+      "description": "Chain length should match depth + 1"
+    },
+    {
+      "name": "reduced_rate_limit",
+      "request": {
+        "action": "search.web",
+        "target_url": "https://example.org/data",
+        "method": "GET",
+        "note": "51st request in hour (parent limit was 100, delegated is 50)"
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_constraint_violation",
+      "description": "Rate limit should be reduced from parent (100 -> 50)"
+    },
+    {
+      "name": "removed_domain",
+      "request": {
+        "action": "search.web",
+        "target_url": "https://trusted.com/data",
+        "method": "GET"
+      },
+      "expected_result": "FORBIDDEN",
+      "error_code": "aap_domain_not_allowed",
+      "description": "Domain removed during delegation (trusted.com not in delegated token)"
+    }
+  ],
+  "metadata": {
+    "specification_section": "5.7 (Delegation Chain Semantics), RFC 8693 (Token Exchange)",
+    "created": "2025-02-01",
+    "version": "1.0"
+  }
+}

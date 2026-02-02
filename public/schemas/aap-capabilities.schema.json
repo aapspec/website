@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aap-protocol.org/schemas/aap-capabilities.schema.json",
+  "title": "AAP Capabilities Array",
+  "description": "Schema for the 'capabilities' claim in AAP tokens",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "required": ["action"],
+    "properties": {
+      "action": {
+        "type": "string",
+        "description": "The action this capability grants access to. Format: component[.component]* per ABNF grammar.",
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*(\\.[a-zA-Z][a-zA-Z0-9_-]*)*$",
+        "examples": [
+          "search.web",
+          "cms.create_draft",
+          "cms.publish",
+          "execute.payment",
+          "api.v2.users.read"
+        ]
+      },
+      "description": {
+        "type": "string",
+        "description": "Human-readable description of what this capability allows",
+        "examples": [
+          "Search web resources within allowed domains",
+          "Create draft content in CMS",
+          "Execute payments up to approval threshold"
+        ]
+      },
+      "constraints": {
+        "$ref": "aap-constraints.schema.json",
+        "description": "Constraints that apply to this capability"
+      },
+      "resources": {
+        "type": "array",
+        "description": "Specific resources this capability applies to (optional, for resource-level authorization)",
+        "items": {
+          "type": "string",
+          "format": "uri"
+        },
+        "examples": [
+          ["https://api.example.com/v2/articles/*"],
+          ["urn:resource:cms:blog:*"]
+        ]
+      },
+      "conditions": {
+        "type": "object",
+        "description": "Additional conditions for capability activation (extensible)",
+        "additionalProperties": true
+      }
+    }
+  }
+}

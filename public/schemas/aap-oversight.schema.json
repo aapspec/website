@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aap-protocol.org/schemas/aap-oversight.schema.json",
+  "title": "AAP Oversight Claim",
+  "description": "Schema for the 'oversight' claim in AAP tokens, defining human oversight requirements",
+  "type": "object",
+  "properties": {
+    "level": {
+      "type": "string",
+      "enum": ["none", "notification", "approval", "supervised"],
+      "description": "Level of human oversight required",
+      "examples": ["approval", "notification"]
+    },
+    "requires_human_approval_for": {
+      "type": "array",
+      "description": "List of actions that require explicit human approval before execution",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*(\\.[a-zA-Z][a-zA-Z0-9_-]*)*$"
+      },
+      "examples": [
+        ["cms.publish", "execute.payment", "data.delete"]
+      ]
+    },
+    "notify_on": {
+      "type": "array",
+      "description": "List of actions that trigger notifications to human overseers",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*(\\.[a-zA-Z][a-zA-Z0-9_-]*)*$"
+      },
+      "examples": [
+        ["search.web", "cms.create_draft"]
+      ]
+    },
+    "approval_reference": {
+      "type": "string",
+      "format": "uri",
+      "description": "URI where approval can be requested/checked",
+      "examples": [
+        "https://approval.example.com/requests",
+        "https://workflow.example.com/approve?task_id=123"
+      ]
+    },
+    "notification_endpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Endpoint for sending oversight notifications",
+      "examples": [
+        "https://notify.example.com/agent-actions",
+        "https://webhook.example.com/oversight"
+      ]
+    },
+    "supervisor": {
+      "type": "string",
+      "description": "Identifier of the human supervisor responsible for oversight",
+      "examples": [
+        "user:alice",
+        "team:operations",
+        "mailto:supervisor@example.com"
+      ]
+    },
+    "approval_timeout": {
+      "type": "integer",
+      "description": "Timeout in seconds for approval requests (after which action is denied)",
+      "minimum": 1,
+      "examples": [3600, 86400]
+    }
+  }
+}
