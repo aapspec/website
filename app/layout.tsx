@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+    metadataBase: new URL("https://www.aap-protocol.org"),
     title: "AAP - Agent Authorization Profile | OAuth 2.0 for AI Agents",
     description:
         "Authorization profile for autonomous AI agents. Extends OAuth 2.0 with structured claims for identity, capabilities, delegation, and human oversight.",
@@ -28,10 +29,13 @@ export const metadata: Metadata = {
         "RFC 8693",
     ],
     authors: [{ name: "AAP Working Group" }],
+    alternates: {
+        canonical: "https://www.aap-protocol.org",
+    },
     openGraph: {
         type: "website",
         locale: "en_US",
-        url: "https://aap-protocol.org",
+        url: "https://www.aap-protocol.org",
         title: "Agent Authorization Profile (AAP)",
         description: "OAuth 2.0 for autonomous AI agents",
         images: [
