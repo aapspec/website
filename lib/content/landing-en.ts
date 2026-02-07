@@ -1,12 +1,12 @@
 export const landingContent = {
   metadata: {
-    title: 'AAP - Fine-Grained Authorization for AI Agents | Agent Authorization Profile',
+    title: 'Agent Authorization Profile (AAP) for OAuth 2.0',
     description: 'OAuth 2.0 profile for AI agents with enforceable rate limits, domain restrictions, delegation depth control, task binding, and human oversight—in standard JWT tokens.',
     ogImage: '/og-image.png',
   },
   hero: {
     badge: 'OAuth 2.0 for the AI Agent Era',
-    title: 'Fine-Grained Authorization for AI Agents',
+    title: 'Agent Authorization Profile (AAP) for OAuth 2.0',
     subtitle: 'Rate limits, domain restrictions, and delegation depth—right in your OAuth tokens',
     description: 'Stop building custom authorization middleware for every agent. AAP gives you structured JWT claims for capabilities (with constraints), task binding, delegation tracking, and oversight requirements. Works with any OAuth 2.0 Authorization Server.',
     primaryCta: { text: 'Read the Specification', href: '/specification' },
@@ -54,14 +54,14 @@ export const landingContent = {
     features: [
       {
         title: 'Know exactly which agent did what',
-        description: 'The `aap_agent` claim includes agent ID, type (LLM, bot, scripted), operator organization, and runtime environment. No more "some agent somewhere" in your logs—every action is traceable to a specific identity.',
+        description: 'The `agent` claim includes agent ID, type (LLM, bot, scripted), operator organization, and runtime environment. No more "some agent somewhere" in your logs—every action is traceable to a specific identity.',
         code: `{
-  "aap_agent": {
+  "agent": {
     "id": "agent-researcher-01",
     "type": "llm-autonomous",
     "operator": "org:blogcorp",
     "model": "gpt-4",
-    "runtime_context": {
+    "runtime": {
       "environment": "production",
       "version": "1.2.0"
     }
@@ -71,9 +71,9 @@ export const landingContent = {
       },
       {
         title: 'Capabilities with teeth',
-        description: 'Each `aap_capabilities` entry specifies an exact action ("search.web", "cms.publish") plus server-side enforceable constraints: allowed domains, rate limits, time windows. The agent can\'t tamper with these—they\'re validated by your Resource Server.',
+        description: 'Each `capabilities` entry specifies an exact action ("search.web", "cms.publish") plus server-side enforceable constraints: allowed domains, rate limits, time windows. The agent can\'t tamper with these—they\'re validated by your Resource Server.',
         code: `{
-  "aap_capabilities": [
+  "capabilities": [
     {
       "action": "search.web",
       "constraints": {
@@ -97,25 +97,22 @@ export const landingContent = {
       },
       {
         title: 'Bind tokens to tasks',
-        description: 'The `aap_task` claim links the token to a specific task ID and declared purpose. This prevents "I got this token for research but I\'ll use it to delete production data." Your Resource Server can reject requests that don\'t match the task context.',
+        description: 'The `task` claim links the token to a specific task ID and declared purpose. This prevents "I got this token for research but I\'ll use it to delete production data." Your Resource Server can reject requests that don\'t match the task context.',
         code: `{
-  "aap_task": {
+  "task": {
     "id": "task-123",
     "purpose": "research_and_draft_article",
-    "data_sensitivity": "public",
-    "context": {
-      "topic": "OAuth for AI agents",
-      "target_audience": "developers"
-    }
+    "topic": "OAuth for AI agents",
+    "data_sensitivity": "public"
   }
 }`,
         icon: 'target'
       },
       {
         title: 'See the full delegation chain',
-        description: 'The `aap_delegation` claim tracks every hop in the delegation chain with depth limits. Agent A delegates to Tool B, which delegates to Service C—you see the full path. Enforcing "max 2 delegation hops" becomes trivial.',
+        description: 'The `delegation` claim tracks every hop in the delegation chain with depth limits. Agent A delegates to Tool B, which delegates to Service C—you see the full path. Enforcing "max 2 delegation hops" becomes trivial.',
         code: `{
-  "aap_delegation": {
+  "delegation": {
     "depth": 1,
     "max_depth": 2,
     "chain": [
@@ -133,9 +130,9 @@ export const landingContent = {
       },
       {
         title: 'Require human approval',
-        description: 'The `aap_oversight` claim lists actions that need human approval before execution. Your agent can create drafts all day, but publishing requires a human to click "yes." Build approval workflows directly into your authorization layer.',
+        description: 'The `oversight` claim lists actions that need human approval before execution. Your agent can create drafts all day, but publishing requires a human to click "yes." Build approval workflows directly into your authorization layer.',
         code: `{
-  "aap_oversight": {
+  "oversight": {
     "requires_human_approval_for": [
       "cms.publish",
       "payment.execute"
@@ -191,7 +188,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
       {
         number: 3,
         title: 'AS issues JWT with AAP claims',
-        description: 'The Authorization Server issues a standard JWT containing OAuth claims (iss, sub, aud, exp) plus AAP claims (aap_agent, aap_capabilities, aap_task, aap_oversight, aap_delegation).',
+        description: 'The Authorization Server issues a standard JWT containing OAuth claims (iss, sub, aud, exp) plus AAP claims (agent, capabilities, task, oversight, delegation).',
         icon: 'fileText',
         actor: 'as'
       },
@@ -268,7 +265,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
         ],
         aapSolution: [
           'Token Exchange (RFC 8693) for each delegation with automatic privilege reduction',
-          'aap_delegation.depth increments at each step: main (depth=0) → translator (depth=1) → analyzer (depth=2)',
+          'delegation.depth increments at each step: main (depth=0) → translator (depth=1) → analyzer (depth=2)',
           'max_depth=2 enforced by Authorization Server—depth=3 requests are rejected',
           'Full delegation chain logged: [main_agent, translator_tool, analyzer_service]',
           'Capabilities reduced at each hop: main has 10 actions, translator has 3, analyzer has 1'
@@ -285,7 +282,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
           'Separate audit per tenant'
         ],
         aapSolution: [
-          'aap_agent.operator includes tenant ID: "org:acme", "org:techcorp"—enforced at Resource Server',
+          'agent.operator includes tenant ID: "org:acme", "org:techcorp"—enforced at Resource Server',
           'Capabilities filtered by tenant: org:acme agents can only access /api/acme/* resources',
           'Rate limits applied per tenant: org:acme gets 1000 req/hour, org:starter gets 100 req/hour',
           'Audit logs partitioned by operator for GDPR compliance and tenant isolation',
@@ -395,28 +392,25 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
   "iat": 1735686000,
   "jti": "unique-token-id-abc123",
 
-  "aap_agent": {
+  "agent": {
     "id": "agent-researcher-01",
     "type": "llm-autonomous",
     "operator": "org:blogcorp",
     "model": "gpt-4",
-    "runtime_context": {
+    "runtime": {
       "environment": "production",
       "version": "1.2.0"
     }
   },
 
-  "aap_task": {
+  "task": {
     "id": "task-123",
     "purpose": "research_and_draft_article",
-    "data_sensitivity": "public",
-    "context": {
-      "topic": "OAuth for AI agents",
-      "target_audience": "developers"
-    }
+    "topic": "OAuth for AI agents",
+    "data_sensitivity": "public"
   },
 
-  "aap_capabilities": [
+  "capabilities": [
     {
       "action": "search.web",
       "constraints": {
@@ -432,7 +426,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
     }
   ],
 
-  "aap_oversight": {
+  "oversight": {
     "requires_human_approval_for": ["cms.publish"],
     "approval_workflow": {
       "type": "slack_channel",
@@ -440,7 +434,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
     }
   },
 
-  "aap_delegation": {
+  "delegation": {
     "depth": 0,
     "max_depth": 2
   }
@@ -452,11 +446,11 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
       'exp': 'Expiry: Expiration timestamp (short tokens recommended)',
       'iat': 'Issued At: Issuance timestamp',
       'jti': 'JWT ID: Unique token identifier (for revocation)',
-      'aap_agent': 'Explicit agent identity with type, operator, and context',
-      'aap_task': 'Task binding with purpose and data sensitivity',
-      'aap_capabilities': 'Capabilities with server-side enforceable constraints',
-      'aap_oversight': 'Human oversight requirements',
-      'aap_delegation': 'Delegation tracking and limits'
+      'agent': 'Explicit agent identity with type, operator, and context',
+      'task': 'Task binding with purpose and data sensitivity',
+      'capabilities': 'Capabilities with server-side enforceable constraints',
+      'oversight': 'Human oversight requirements',
+      'delegation': 'Delegation tracking and limits'
     }
   },
   cta: {
@@ -508,15 +502,15 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
         { text: 'JSON Schemas', href: '/schemas' },
         { text: 'Test Vectors', href: '/test-vectors' },
         { text: 'Reference Implementation', href: '/reference-impl' },
-        { text: 'Migration Guide', href: '/docs/migration' }
+        { text: 'Migration Guide', href: '/migration' }
       ]
     },
     community: {
       title: 'Community',
       links: [
-        { text: 'GitHub', href: 'https://github.com/yourusername/aap-spec' },
-        { text: 'Discussions', href: 'https://github.com/yourusername/aap-spec/discussions' },
-        { text: 'Contributing', href: 'https://github.com/yourusername/aap-spec/blob/main/CONTRIBUTING.md' }
+        { text: 'GitHub', href: 'https://github.com/aapspec' },
+        { text: 'Discussions', href: 'https://github.com/aapspec/spec/discussions' },
+        { text: 'Contributing', href: 'https://github.com/aapspec/spec/blob/main/CONTRIBUTING.md' }
       ]
     },
     standards: {

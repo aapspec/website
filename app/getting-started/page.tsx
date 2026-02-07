@@ -1,10 +1,9 @@
-import Link from 'next/link';
-import { Zap, CheckCircle, ArrowRight } from 'lucide-react';
+'use client';
 
-export const metadata = {
-  title: 'Getting Started - Agent Authorization Profile',
-  description: 'Quick start guide to get up and running with AAP in minutes.',
-};
+import Link from 'next/link';
+import { CheckCircle, ArrowRight, Shield, Rocket, HelpCircle, GitMerge } from 'lucide-react';
+import { PageHeader } from '@/components/shared/PageHeader';
+import { FadeUp, StaggerContainer, StaggerItem } from '@/components/shared/MotionWrappers';
 
 const steps = [
   {
@@ -45,7 +44,7 @@ const steps = [
     codeExample: {
       title: 'Install Reference Implementation',
       code: `# Clone repository
-git clone https://github.com/aap-protocol/spec.git
+git clone https://github.com/aapspec/spec.git
 cd spec/reference-impl
 
 # Install dependencies
@@ -95,11 +94,12 @@ python server.py`,
     description: 'Implement validation logic in your API.',
     codeExample: {
       title: 'Python Validation Example',
-      code: `from aap_rs.validator import TokenValidator
+      code: `from rs.validator import TokenValidator, ValidationError
 
 validator = TokenValidator(
-    as_public_key=as_public_key,
-    rs_audience="https://api.example.com"
+    public_key=public_key,
+    audience="https://api.example.com",
+    trusted_issuers=["https://as.example.com"]
 )
 
 # Validate token
@@ -110,7 +110,7 @@ try:
     })
     print("Token valid:", payload["agent"]["id"])
 except ValidationError as e:
-    print("Token invalid:", e)`,
+    print("Token invalid:", e.error_code, e.description)`,
     },
     action: {
       text: 'View RS Documentation',
@@ -134,110 +134,139 @@ except ValidationError as e:
   },
 ];
 
+const nextSteps = [
+  {
+    title: 'Migrate from OAuth Scopes',
+    description: 'Step-by-step guide for existing OAuth systems',
+    href: '/migration',
+    icon: GitMerge,
+  },
+  {
+    title: 'Deploy to Production',
+    description: 'Kubernetes, Docker, and cloud deployment patterns',
+    href: '/deployment',
+    icon: Rocket,
+  },
+  {
+    title: 'Review Security Model',
+    description: 'Understand threats and mitigations',
+    href: '/threat-model',
+    icon: Shield,
+  },
+  {
+    title: 'Get Help',
+    description: 'Find answers to common questions',
+    href: '/faq',
+    icon: HelpCircle,
+  },
+];
+
 export default function GettingStartedPage() {
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="max-w-5xl mx-auto px-6 py-16">
-        {/* Header */}
-        <div className="mb-12">
-          <Link href="/docs" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mb-4 inline-block">
-            ← Back to Documentation
-          </Link>
-          <div className="flex items-center gap-3 mb-4">
-            <Zap className="w-10 h-10 text-yellow-500" />
-            <h1 className="text-5xl font-bold">Getting Started</h1>
-          </div>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Get up and running with AAP in 6 steps. From understanding the basics to validating your first token.
-          </p>
-        </div>
+      <PageHeader
+        title="Getting Started"
+        description="Get up and running with AAP in 6 steps. From understanding the basics to validating your first token."
+        breadcrumbs={[
+          { label: 'Documentation', href: '/docs' },
+          { label: 'Getting Started' },
+        ]}
+      />
 
-        {/* Quick Overview */}
-        <div className="mb-12 p-6 bg-gradient-to-br from-blue-50 to-violet-50 dark:from-blue-950 dark:to-violet-950 rounded-lg border border-blue-200 dark:border-blue-900">
-          <h2 className="text-xl font-semibold mb-3">What You'll Learn</h2>
-          <ul className="grid md:grid-cols-2 gap-3 text-sm">
-            <li className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-              <span>AAP token structure and claims</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-              <span>Setting up Authorization Server</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-              <span>Requesting AAP tokens</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-              <span>Validating tokens in Resource Server</span>
-            </li>
-          </ul>
-        </div>
+      <div className="max-w-5xl mx-auto px-6 md:px-8 py-12 md:py-16">
+        {/* What You'll Learn */}
+        <FadeUp>
+          <div className="mb-14 p-6 md:p-8 rounded-2xl border border-blue-200/60 dark:border-blue-800/40 bg-gradient-to-br from-blue-50/80 via-violet-50/50 to-blue-50/80 dark:from-blue-950/40 dark:via-violet-950/30 dark:to-blue-950/40 backdrop-blur-sm">
+            <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-white">What You&apos;ll Learn</h2>
+            <ul className="grid md:grid-cols-2 gap-3 text-sm">
+              <li className="flex items-center gap-2.5">
+                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+                <span className="text-zinc-700 dark:text-zinc-300">AAP token structure and claims</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+                <span className="text-zinc-700 dark:text-zinc-300">Setting up Authorization Server</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+                <span className="text-zinc-700 dark:text-zinc-300">Requesting AAP tokens</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+                <span className="text-zinc-700 dark:text-zinc-300">Validating tokens in Resource Server</span>
+              </li>
+            </ul>
+          </div>
+        </FadeUp>
 
         {/* Steps */}
         <div className="space-y-8">
           {steps.map((step) => (
-            <div
-              key={step.number}
-              id={`step-${step.number}`}
-              className="relative pl-12 pb-8 border-l-2 border-gray-200 dark:border-gray-800 last:border-0"
-            >
-              {/* Step Number */}
-              <div className="absolute left-0 top-0 -translate-x-1/2 w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg">
-                {step.number}
-              </div>
+            <FadeUp key={step.number}>
+              <div
+                id={`step-${step.number}`}
+                className="relative pl-14 pb-8 border-l-2 border-zinc-200 dark:border-zinc-800 last:border-0"
+              >
+                {/* Step Number */}
+                <div className="absolute left-0 top-0 -translate-x-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/20">
+                  {step.number}
+                </div>
 
-              {/* Step Content */}
-              <div>
-                <h3 className="text-2xl font-semibold mb-2">{step.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">{step.description}</p>
+                {/* Step Content */}
+                <div>
+                  <h3 className="text-2xl font-semibold mb-2 text-zinc-900 dark:text-white">{step.title}</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 mb-4">{step.description}</p>
 
-                {/* Details List */}
-                {step.details && (
-                  <ul className="mb-4 space-y-2">
-                    {step.details.map((detail, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm">
-                        <ArrowRight className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700 dark:text-gray-300">{detail}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                  {/* Details List */}
+                  {step.details && (
+                    <ul className="mb-4 space-y-2">
+                      {step.details.map((detail, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm">
+                          <ArrowRight className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                          <span className="text-zinc-700 dark:text-zinc-300">{detail}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
 
-                {/* Code Example */}
-                {step.codeExample && (
-                  <div className="mb-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
-                    <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                      <span className="text-sm font-semibold">{step.codeExample.title}</span>
+                  {/* Code Example */}
+                  {step.codeExample && (
+                    <div className="mb-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+                      <div className="px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-700">
+                        <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{step.codeExample.title}</span>
+                      </div>
+                      <pre className="p-4 overflow-x-auto text-sm">
+                        <code className="text-zinc-800 dark:text-zinc-200">{step.codeExample.code}</code>
+                      </pre>
                     </div>
-                    <pre className="p-4 overflow-x-auto text-sm">
-                      <code className="text-gray-800 dark:text-gray-200">{step.codeExample.code}</code>
-                    </pre>
-                  </div>
-                )}
+                  )}
 
-                {/* Action Button */}
-                <Link
-                  href={step.action.href}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
-                >
-                  {step.action.text}
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                  {/* Action Button */}
+                  <Link
+                    href={step.action.href}
+                    className="group inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white rounded-full text-sm font-semibold transition-all duration-200 shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30"
+                  >
+                    {step.action.text}
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" />
+                  </Link>
+                </div>
               </div>
-            </div>
+            </FadeUp>
           ))}
         </div>
 
         {/* Token Example */}
-        <section id="token-example" className="mt-16 p-8 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-          <h2 className="text-2xl font-semibold mb-4">Example AAP Token</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            A complete AAP token with all claims:
-          </p>
-          <pre className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto text-xs">
-            <code>{`{
+        <FadeUp>
+          <section id="token-example" className="mt-16 relative overflow-hidden p-8 md:p-10 rounded-2xl bg-zinc-900 dark:bg-zinc-800/50 border border-zinc-700/50 dark:border-zinc-700/30">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:32px_32px]" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500 rounded-full mix-blend-overlay filter blur-3xl opacity-10" />
+            <div className="relative">
+              <h2 className="text-2xl font-bold mb-3 text-white">Example AAP Token</h2>
+              <p className="text-zinc-400 mb-6">
+                A complete AAP token with all claims:
+              </p>
+              <pre className="bg-zinc-950 text-zinc-100 p-5 rounded-xl overflow-x-auto text-xs border border-zinc-800">
+                <code>{`{
   "iss": "https://as.example.com",
   "sub": "spiffe://example.com/agent/researcher-01",
   "aud": ["https://api.example.com"],
@@ -273,51 +302,42 @@ export default function GettingStartedPage() {
     "max_depth": 2
   }
 }`}</code>
-          </pre>
-        </section>
+              </pre>
+            </div>
+          </section>
+        </FadeUp>
 
         {/* Next Steps */}
-        <section className="mt-16 p-8 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg border border-green-200 dark:border-green-900">
-          <h2 className="text-2xl font-semibold mb-4">Next Steps</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Link
-              href="/migration"
-              className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-green-500 dark:hover:border-green-500 transition-colors"
-            >
-              <h3 className="font-semibold mb-2">Migrate from OAuth Scopes</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Step-by-step guide for existing OAuth systems
-              </p>
-            </Link>
-            <Link
-              href="/deployment"
-              className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-green-500 dark:hover:border-green-500 transition-colors"
-            >
-              <h3 className="font-semibold mb-2">Deploy to Production</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Kubernetes, Docker, and cloud deployment patterns
-              </p>
-            </Link>
-            <Link
-              href="/threat-model"
-              className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-green-500 dark:hover:border-green-500 transition-colors"
-            >
-              <h3 className="font-semibold mb-2">Review Security Model</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Understand threats and mitigations
-              </p>
-            </Link>
-            <Link
-              href="/faq"
-              className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-green-500 dark:hover:border-green-500 transition-colors"
-            >
-              <h3 className="font-semibold mb-2">Get Help</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Find answers to common questions
-              </p>
-            </Link>
-          </div>
-        </section>
+        <FadeUp>
+          <section className="mt-16">
+            <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-white">Next Steps</h2>
+            <StaggerContainer className="grid md:grid-cols-2 gap-4">
+              {nextSteps.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <StaggerItem key={item.href}>
+                    <Link
+                      href={item.href}
+                      className="group flex items-start gap-4 p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-blue-500/30 dark:hover:border-blue-500/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                    >
+                      <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 group-hover:scale-110 transition-transform duration-300 shrink-0">
+                        <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold mb-1 text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                          {item.title}
+                        </h3>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          {item.description}
+                        </p>
+                      </div>
+                    </Link>
+                  </StaggerItem>
+                );
+              })}
+            </StaggerContainer>
+          </section>
+        </FadeUp>
       </div>
     </div>
   );

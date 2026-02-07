@@ -61,7 +61,7 @@ export function TableOfContents({ markdown }: TableOfContentsProps) {
 
   return (
     <nav className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
+      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
         On this page
       </h3>
       <ul className="space-y-2 text-sm">
@@ -77,7 +77,7 @@ export function TableOfContents({ markdown }: TableOfContentsProps) {
               className={`block py-1 transition-colors ${
                 activeId === id
                   ? 'text-blue-600 dark:text-blue-400 font-medium'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
               onClick={(e) => {
                 e.preventDefault();

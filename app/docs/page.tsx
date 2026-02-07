@@ -1,16 +1,15 @@
-import Link from 'next/link';
-import { Book, FileCode, Shield, HelpCircle, Database, Code, Rocket, AlertTriangle, FileText, Zap } from 'lucide-react';
+'use client';
 
-export const metadata = {
-  title: 'Documentation - Agent Authorization Profile',
-  description: 'Complete documentation for AAP including specification, guides, and reference implementation.',
-};
+import Link from 'next/link';
+import { Book, FileCode, Shield, HelpCircle, Database, Code, Rocket, AlertTriangle, FileText, Zap, ArrowRight, Github, MessageCircle, Bug } from 'lucide-react';
+import { PageHeader } from '@/components/shared/PageHeader';
+import { FadeUp, StaggerContainer, StaggerItem } from '@/components/shared/MotionWrappers';
 
 interface DocCard {
   title: string;
   description: string;
   href: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   badge?: string;
 }
 
@@ -50,7 +49,7 @@ const docSections: { title: string; cards: DocCard[] }[] = [
       },
       {
         title: 'Test Vectors',
-        description: '80+ test cases covering all specification sections, constraints, and edge cases.',
+        description: '70+ test cases covering all specification sections, constraints, and edge cases.',
         href: '/test-vectors',
         icon: Database,
       },
@@ -98,105 +97,130 @@ const docSections: { title: string; cards: DocCard[] }[] = [
   },
 ];
 
+const quickLinks = [
+  { label: 'Quick Start', href: '/getting-started', icon: Zap },
+  { label: 'Read Spec', href: '/specification', icon: FileText },
+  { label: 'View Code', href: '/reference-impl', icon: Code },
+  { label: 'Get Help', href: '/faq', icon: HelpCircle },
+];
+
 export default function DocsPage() {
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="mb-12">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mb-4 inline-block">
-            ← Back to Home
-          </Link>
-          <h1 className="text-5xl font-bold mb-4">Documentation</h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl">
-            Complete documentation for the Agent Authorization Profile. From getting started guides to deep technical specifications.
-          </p>
-        </div>
+      <PageHeader
+        title="Documentation"
+        description="Complete documentation for the Agent Authorization Profile. From getting started guides to deep technical specifications."
+        breadcrumbs={[{ label: 'Documentation' }]}
+      />
 
-        <div className="mb-16 p-6 bg-linear-to-br from-blue-50 to-violet-50 dark:from-blue-950 dark:to-violet-950 rounded-lg border border-blue-200 dark:border-blue-900">
-          <h2 className="text-lg font-semibold mb-3">Quick Access</h2>
-          <div className="grid md:grid-cols-4 gap-4">
-            <Link href="/getting-started" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-              → Quick Start
-            </Link>
-            <Link href="/specification" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-              → Read Spec
-            </Link>
-            <Link href="/reference-impl" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-              → View Code
-            </Link>
-            <Link href="/faq" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-              → Get Help
-            </Link>
-          </div>
-        </div>
-
-        {docSections.map((section, sectionIndex) => (
-          <section key={sectionIndex} className="mb-12">
-            <h2 className="text-2xl font-semibold mb-6">{section.title}</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {section.cards.map((card, cardIndex) => {
-                const Icon = card.icon;
+      <div className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-16">
+        {/* Quick Access */}
+        <FadeUp>
+          <div className="mb-16 p-6 md:p-8 rounded-2xl border border-blue-200/60 dark:border-blue-800/40 bg-gradient-to-br from-blue-50/80 via-violet-50/50 to-blue-50/80 dark:from-blue-950/40 dark:via-violet-950/30 dark:to-blue-950/40 backdrop-blur-sm">
+            <h2 className="text-lg font-semibold mb-4 text-zinc-900 dark:text-white">Quick Access</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {quickLinks.map((link) => {
+                const Icon = link.icon;
                 return (
                   <Link
-                    key={cardIndex}
-                    href={card.href}
-                    className="group p-6 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:shadow-lg"
+                    key={link.href}
+                    href={link.href}
+                    className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white/70 dark:bg-zinc-900/50 border border-blue-100 dark:border-blue-900/50 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-white dark:hover:bg-zinc-800/70 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-sm transition-all duration-200"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-blue-900 transition-colors">
-                        <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      {card.badge && (
-                        <span className="px-2 py-1 text-xs font-semibold bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded">
-                          {card.badge}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {card.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {card.description}
-                    </p>
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{link.label}</span>
+                    <ArrowRight className="w-3.5 h-3.5 ml-auto opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
                   </Link>
                 );
               })}
             </div>
+          </div>
+        </FadeUp>
+
+        {/* Doc Sections */}
+        {docSections.map((section, sectionIndex) => (
+          <section key={sectionIndex} className="mb-14">
+            <FadeUp>
+              <h2 className="text-2xl font-semibold mb-6 text-zinc-900 dark:text-white">{section.title}</h2>
+            </FadeUp>
+            <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {section.cards.map((card, cardIndex) => {
+                const Icon = card.icon;
+                return (
+                  <StaggerItem key={cardIndex}>
+                    <Link
+                      href={card.href}
+                      className="group block h-full p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-blue-500/30 dark:hover:border-blue-500/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 group-hover:scale-110 transition-transform duration-300">
+                          <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        {card.badge && (
+                          <span className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-blue-100 to-violet-100 dark:from-blue-900/40 dark:to-violet-900/40 text-blue-700 dark:text-blue-300 rounded-full">
+                            {card.badge}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2 text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                        {card.title}
+                      </h3>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                        {card.description}
+                      </p>
+                    </Link>
+                  </StaggerItem>
+                );
+              })}
+            </StaggerContainer>
           </section>
         ))}
 
-        <section className="mt-16 p-8 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-          <h2 className="text-2xl font-semibold mb-4">Community & Support</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Join the AAP community, contribute to the specification, or get help with implementation.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <a
-              href="https://github.com/aap-protocol/spec"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-lg font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-            >
-              View on GitHub
-            </a>
-            <a
-              href="https://github.com/aap-protocol/spec/discussions"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 border border-gray-300 dark:border-gray-700 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              Join Discussions
-            </a>
-            <a
-              href="https://github.com/aap-protocol/spec/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 border border-gray-300 dark:border-gray-700 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              Report Issues
-            </a>
-          </div>
-        </section>
+        {/* Community & Support */}
+        <FadeUp>
+          <section className="mt-16 relative overflow-hidden p-8 md:p-12 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 dark:from-zinc-800/50 dark:via-zinc-900/50 dark:to-zinc-800/50 border border-zinc-700/50 dark:border-zinc-700/30">
+            {/* Background decoration */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:32px_32px]" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-overlay filter blur-3xl opacity-10" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500 rounded-full mix-blend-overlay filter blur-3xl opacity-10" />
+
+            <div className="relative">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white">Community & Support</h2>
+              <p className="text-zinc-400 mb-8 max-w-2xl text-lg">
+                Join the AAP community, contribute to the specification, or get help with implementation.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="https://github.com/aapspec/spec"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-zinc-900 rounded-full font-semibold hover:bg-zinc-100 hover:scale-105 transition-all duration-200 shadow-lg"
+                >
+                  <Github className="w-4 h-4" />
+                  View on GitHub
+                </a>
+                <a
+                  href="https://github.com/aapspec/spec/discussions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-zinc-600 text-zinc-200 rounded-full font-semibold hover:bg-zinc-800 hover:border-zinc-500 transition-all duration-200"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Join Discussions
+                </a>
+                <a
+                  href="https://github.com/aapspec/spec/issues"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-zinc-600 text-zinc-200 rounded-full font-semibold hover:bg-zinc-800 hover:border-zinc-500 transition-all duration-200"
+                >
+                  <Bug className="w-4 h-4" />
+                  Report Issues
+                </a>
+              </div>
+            </div>
+          </section>
+        </FadeUp>
       </div>
     </div>
   );

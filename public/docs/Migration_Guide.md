@@ -239,7 +239,7 @@ jsonschema -i policies/org-content-team.json schemas/policy.schema.json
 
 ```bash
 # Clone reference implementation
-git clone https://github.com/aap-protocol/reference-impl.git
+git clone https://github.com/aapspec/reference-impl.git
 cd reference-impl
 
 # Install dependencies

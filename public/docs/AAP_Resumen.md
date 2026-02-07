@@ -32,7 +32,7 @@ In AAP, the OAuth “client” is the agent (e.g. an LLM or a bot). The Authoriz
 
 - **Make delegation between agents and tools auditable.** With Token Exchange and delegation claims (`depth`, `chain`, and optionally `act`), delegation depth and scope can be limited and the chain of actors can be traced.
 
-- **Express human oversight requirements.** Claims such as `aap_oversight` / `oversight` allow indicating which actions require human approval; the Resource Server or an orchestrator can require an approval flow before executing them.
+- **Express human oversight requirements.** Claims such as `oversight` allow indicating which actions require human approval; the Resource Server or an orchestrator can require an approval flow before executing them.
 
 - **Stay compatible with the current ecosystem.** Those already using OAuth 2.0, JWT, DPoP, mTLS, OIDC, or SPIFFE can adopt AAP as an additional profile: same flows and mechanisms, with extra claims and validation rules for agents.
 

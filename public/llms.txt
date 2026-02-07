@@ -203,7 +203,7 @@ Access: https://aap-protocol.org/schemas
 
 ## Test Vectors
 
-80+ test cases organized in 4 categories:
+70+ test cases organized in 4 categories:
 
 1. **Valid Tokens** (4 vectors) - Should pass validation
 2. **Invalid Tokens** (6 vectors) - Should fail with specific errors

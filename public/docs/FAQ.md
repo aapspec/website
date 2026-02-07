@@ -524,7 +524,7 @@ Eventually deprecate OAuth scope support.
 **Resources:**
 - **Specification:** [AAP Complete Specification](/docs/AAP_Complete_Draft_Specification.md)
 - **Reference Implementation:** [/reference-impl/](/reference-impl/)
-- **GitHub Issues:** [https://github.com/aap-protocol/spec/issues](https://github.com/aap-protocol/spec/issues)
+- **GitHub Issues:** [https://github.com/aapspec/spec/issues](https://github.com/aapspec/spec/issues)
 - **IETF Mailing List:** [oauth@ietf.org](mailto:oauth@ietf.org)
 - **Slack:** [Join AAP Community](https://aap-protocol.slack.com)
 
@@ -537,7 +537,7 @@ Eventually deprecate OAuth scope support.
 - **Documentation:** Improve guides, examples, tutorials
 - **Advocacy:** Blog posts, conference talks, workshops
 
-See [CONTRIBUTING.md](https://github.com/aap-protocol/spec/blob/main/CONTRIBUTING.md).
+See [CONTRIBUTING.md](https://github.com/aapspec/spec/blob/main/CONTRIBUTING.md).
 
 ### Q29: Is there commercial support available?
 
@@ -574,4 +574,4 @@ Contact [AAP Working Group](mailto:aap-wg@example.com) for referrals.
 
 **Last Updated:** 2025-02-01
 **Version:** 1.0
-**Feedback:** [Submit FAQ suggestions](https://github.com/aap-protocol/spec/issues)
+**Feedback:** [Submit FAQ suggestions](https://github.com/aapspec/spec/issues)

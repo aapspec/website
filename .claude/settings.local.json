@@ -12,7 +12,12 @@
       "Bash(curl:*)",
       "Bash(test:*)",
       "Bash(gh repo view:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(wc:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(grep:*)",
+      "Bash(done)",
+      "WebSearch"
     ]
   }
 }
