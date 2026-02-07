@@ -19,13 +19,14 @@ export default function Icon() {
             >
                 <span
                     style={{
-                        fontSize: 20,
+                        fontSize: 12,
                         fontWeight: 700,
                         color: "white",
                         lineHeight: 1,
+                        letterSpacing: "-0.02em",
                     }}
                 >
-                    A
+                    AAP
                 </span>
             </div>
         ),

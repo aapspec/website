@@ -34,13 +34,14 @@ export default function OgImage() {
                 >
                     <span
                         style={{
-                            fontSize: 48,
+                            fontSize: 32,
                             fontWeight: 700,
                             color: "white",
                             lineHeight: 1,
+                            letterSpacing: "-0.02em",
                         }}
                     >
-                        A
+                        AAP
                     </span>
                 </div>
 
